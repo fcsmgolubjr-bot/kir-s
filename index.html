@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111311">
+  <meta name="description" content="Kir’s Studio создаёт сайты для бизнеса: помогает понятно показать услуги, вызвать доверие и сделать связь с компанией удобной.">
+  <title>Kir’s Studio — сайты для бизнеса</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23111311'/%3E%3Cpath d='M14 13h10v17l14-17h13L34 32l18 19H38L24 35v16H14z' fill='%23d9ff43'/%3E%3C/svg%3E">
+  <style>
+    :root{color-scheme:dark;--bg:#111311;--panel:#191c19;--panel-2:#202420;--line:#3a403a;--text:#f4f5ee;--muted:#b6bdb4;--accent:#d9ff43;--ink:#121512;--page:clamp(20px,4vw,64px)}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
+    .scroll-progress{position:fixed;z-index:50;top:0;left:0;width:100%;height:3px;background:var(--accent);transform:scaleX(0);transform-origin:left;pointer-events:none}
+    ::selection{background:var(--accent);color:var(--ink)}
+    a{color:inherit;text-decoration:none}
+    button,a{-webkit-tap-highlight-color:transparent}
+    a:focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+    .wrap{width:min(100%,1600px);margin:auto;padding-inline:var(--page)}
+    .topbar{height:94px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+    .brand{display:inline-flex;align-items:center;gap:13px;font-weight:900;font-size:18px;letter-spacing:-.055em;white-space:nowrap}
+    .brand-mark{display:grid;place-items:center;width:39px;height:39px;background:var(--accent);color:var(--ink);font-size:21px;letter-spacing:-.13em;padding-right:3px}
+    .top-nav{display:flex;align-items:center;gap:clamp(22px,3vw,54px);font-size:14px;font-weight:700}
+    .top-nav a:not(.header-cta){position:relative;transition:color .25s}
+    .top-nav a:not(.header-cta)::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:1px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .35s ease}
+    .top-nav a:not(.header-cta):hover{color:var(--accent)}
+    .top-nav a:not(.header-cta):hover::after{transform:scaleX(1)}
+    .header-cta{border:1px solid var(--line);padding:13px 17px;transition:background .2s,color .2s,border-color .2s}
+    .header-cta:hover{background:var(--accent);color:var(--ink);border-color:var(--accent)}
+    .hero{min-height:calc(100svh - 94px);display:flex;flex-direction:column;justify-content:space-between;padding-top:clamp(54px,5vw,86px);padding-bottom:42px;position:relative;overflow:hidden}
+    .eyebrow{font-size:13px;line-height:1.4;text-transform:uppercase;letter-spacing:.15em;font-weight:800;color:var(--accent)}
+    .hero h1{font-size:clamp(68px,8vw,132px);line-height:.88;letter-spacing:-.09em;text-transform:uppercase;margin:28px 0 0;max-width:1420px;font-weight:900}
+    .hero h1 span{display:inline-block;color:var(--accent);animation:accent-reveal .9s .25s both}
+    .hero-bottom{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,460px);gap:40px;align-items:end;margin-top:22px}
+    .hero-bottom::before{content:"";height:1px;background:var(--line);align-self:end;transform-origin:left;animation:rule-grow 1s .55s both}
+    .hero-intro{border-left:1px solid var(--line);padding-left:30px;animation:rise-in .85s .25s both}
+    .hero-intro p{font-size:clamp(18px,1.75vw,25px);line-height:1.37;letter-spacing:-.025em;margin:0 0 28px;max-width:490px}
+    .btn{display:inline-flex;justify-content:center;align-items:center;min-height:57px;padding:15px 26px;background:linear-gradient(90deg,#eeff99 50%,var(--accent) 50%) right / 200% 100%;color:var(--ink);font-size:16px;font-weight:800;transition:transform .3s,background-position .45s;white-space:nowrap}
+    .btn:hover{transform:translateY(-4px);background-position:left}
+    .hero-intro .btn{min-width:240px}
+    .section{border-top:1px solid var(--line);padding-top:36px;padding-bottom:clamp(96px,11vw,170px)}
+    .section-head{margin-bottom:clamp(50px,7vw,110px)}
+    .section-title{margin:0;font-size:clamp(48px,6vw,95px);line-height:.97;letter-spacing:-.075em;text-transform:uppercase;font-weight:900;max-width:900px}
+    .section-title em{font-style:normal;color:var(--accent)}
+    .benefits{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line)}
+    .benefit{min-height:330px;padding:28px;display:flex;flex-direction:column;justify-content:space-between;background:var(--panel);transition:background .35s,transform .35s;position:relative;overflow:hidden}
+    .benefit+ .benefit{border-left:1px solid var(--line)}
+    .benefit::before{content:"";width:100%;height:3px;background:var(--accent);transform-origin:left;transition:transform .5s;transform:scaleX(.13)}
+    .benefit:hover{background:var(--panel-2);transform:translateY(-8px)}
+    .benefit:hover::before{transform:scaleX(1)}
+    .benefit h3{font-size:clamp(29px,2.8vw,44px);line-height:1.02;letter-spacing:-.055em;margin:0 0 16px;text-transform:uppercase}
+    .benefit p{font-size:17px;line-height:1.45;color:var(--muted);margin:0;max-width:350px}
+    .process-list{border-top:1px solid var(--line)}
+    .process-item{display:grid;grid-template-columns:minmax(0,1fr) 45px;gap:20px;align-items:center;border-bottom:1px solid var(--line);padding:30px 0;position:relative;transition:color .3s}
+    .process-item::after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:2px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .5s ease}
+    .process-item:hover{color:var(--accent)}
+    .process-item:hover::after{transform:scaleX(1)}
+    .process-item h3{font-size:clamp(25px,3.5vw,54px);line-height:1.05;letter-spacing:-.06em;text-transform:uppercase;margin:0;transition:transform .35s ease}
+    .process-item:hover h3{transform:translateX(14px)}
+    .process-arrow{justify-self:end;font-size:28px;font-weight:400;color:var(--accent);transition:transform .35s ease}
+    .process-item:hover .process-arrow{transform:translate(5px,-5px)}
+    .audience-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:30px}
+    .audience-note{font-size:clamp(18px,1.65vw,24px);line-height:1.4;letter-spacing:-.025em;max-width:345px;color:var(--muted);margin:0}
+    .audience-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .audience-card{min-height:145px;border:1px solid var(--line);padding:23px;display:flex;align-items:flex-end;background:var(--panel);font-size:clamp(21px,2vw,31px);line-height:1.08;letter-spacing:-.05em;text-transform:uppercase;font-weight:900;position:relative;overflow:hidden;transition:transform .35s,background .35s,border-color .35s}
+    .audience-card::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .45s ease}
+    .audience-card:hover{transform:translateY(-6px);background:var(--panel-2);border-color:#68745a}
+    .audience-card:hover::before{transform:scaleX(1)}
+    .final{background:var(--accent);color:var(--ink);padding-top:clamp(40px,6vw,90px);padding-bottom:clamp(44px,6vw,90px)}
+    .final .eyebrow{color:var(--ink)}
+    .final h2{max-width:1200px;font-size:clamp(57px,8vw,130px);line-height:.9;letter-spacing:-.085em;text-transform:uppercase;margin:30px 0 68px;font-weight:900}
+    .final-bottom{display:flex;align-items:end;justify-content:space-between;gap:35px;border-top:1px solid rgba(18,21,18,.45);padding-top:25px}
+    .final-bottom p{font-size:clamp(18px,1.7vw,24px);line-height:1.35;letter-spacing:-.025em;margin:0;max-width:560px}
+    .contact-options{width:min(100%,490px);flex:none}
+    .contact-link{display:flex;flex-direction:column;gap:5px;border-top:1px solid rgba(18,21,18,.5);padding:16px 0;transition:padding-left .3s,color .3s}
+    .contact-link:last-child{border-bottom:1px solid rgba(18,21,18,.5)}
+    .contact-link:hover{padding-left:10px;color:#4b5a0c}
+    .contact-label{font-size:12px;line-height:1.3;letter-spacing:.13em;text-transform:uppercase;font-weight:800}
+    .contact-value{font-size:clamp(21px,2.3vw,32px);line-height:1.12;letter-spacing:-.045em;font-weight:900;overflow-wrap:anywhere}
+    footer{display:flex;align-items:center;justify-content:space-between;gap:30px;min-height:110px;font-size:14px;color:var(--muted)}
+    footer .brand{color:var(--text)}
+    footer p{margin:0}
+    .topbar{animation:drop-in .7s both}
+    .hero .eyebrow{animation:rise-in .7s .08s both}
+    .hero h1{animation:rise-in .9s .12s both}
+    @keyframes rise-in{from{opacity:.6;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes drop-in{from{opacity:.75;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes accent-reveal{from{color:var(--text);transform:translateX(-10px)}to{color:var(--accent);transform:translateX(0)}}
+    @keyframes rule-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+    @media(max-width:900px){
+      .top-nav a:not(.header-cta){display:none}
+      .hero{min-height:auto;padding-bottom:75px}
+      .hero h1{font-size:clamp(61px,10vw,104px)}
+      .hero-bottom{grid-template-columns:1fr;margin-top:70px;gap:28px}
+      .hero-bottom::before{display:none}
+      .hero-intro{border-left:0;border-top:1px solid var(--line);padding:22px 0 0;max-width:610px}
+      .benefit{min-height:300px;padding:22px}
+      .benefit p{font-size:16px}
+      .audience-layout{grid-template-columns:1fr;gap:34px}
+    }
+    @media(max-width:650px){
+      .topbar{height:74px}
+      .brand{font-size:17px}
+      .brand-mark{width:34px;height:34px;font-size:19px}
+      .header-cta{font-size:13px;padding:10px 12px}
+      .hero{padding-top:72px;padding-bottom:77px}
+      .hero h1{font-size:clamp(51px,12.5vw,78px);letter-spacing:-.085em;line-height:.94;margin-top:22px;overflow-wrap:normal}
+      .hero-bottom{margin-top:58px}
+      .hero-intro p{font-size:19px}
+      .section{padding-top:27px;padding-bottom:94px}
+      .section-head{margin-bottom:45px;gap:22px}
+      .section-title{font-size:clamp(43px,10.5vw,65px)}
+      .benefits{grid-template-columns:1fr}
+      .benefit{min-height:230px;padding:23px}
+      .benefit+ .benefit{border-left:0;border-top:1px solid var(--line)}
+      .benefit h3{font-size:35px}
+      .process-item{grid-template-columns:minmax(0,1fr) 23px;gap:11px;padding:25px 0}
+      .process-item h3{font-size:clamp(24px,6vw,35px)}
+      .process-arrow{font-size:20px}
+      .audience-grid{gap:8px}
+      .audience-card{min-height:133px;padding:15px;font-size:clamp(18px,4.6vw,26px)}
+      .final{padding-top:60px;padding-bottom:60px}
+      .final h2{font-size:clamp(56px,12vw,82px);margin:30px 0 55px}
+      .final-bottom{flex-direction:column;align-items:stretch}
+      .contact-options{width:100%}
+      footer{min-height:140px;align-items:flex-start;flex-direction:column;justify-content:center;gap:15px}
+    }
+    @media(max-width:380px){.benefit h3{font-size:30px}.audience-grid{grid-template-columns:1fr}.audience-card{min-height:105px;font-size:24px}}
+    @media(max-width:360px){.hero{padding-top:58px}.hero-bottom{margin-top:44px}.hero h1{font-size:49px}.brand{font-size:15px}.header-cta{font-size:12px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important}.scroll-progress{display:none}}
+  </style>
+</head>
+<body>
+  <div class="scroll-progress" aria-hidden="true"></div>
+  <header class="wrap topbar">
+    <a class="brand" href="#top" aria-label="Kir’s Studio — наверх"><span class="brand-mark" aria-hidden="true">K</span><span>Kir’s Studio</span></a>
+    <nav class="top-nav" aria-label="Навигация">
+      <a href="#benefits">Что вы получите</a>
+      <a href="#process">Как работаем</a>
+      <a href="#audience">Для кого</a>
+      <a class="header-cta" href="#contacts">Контакты</a>
+    </nav>
+  </header>
+  <main id="top">
+    <section class="wrap hero" aria-labelledby="hero-title">
+      <div>
+        <div class="eyebrow">Сайты для бизнеса / Kir’s Studio</div>
+        <h1 id="hero-title">Сайт, который<br><span>не стыдно</span><br>отправить<br>клиенту</h1>
+      </div>
+      <div class="hero-bottom">
+        <div class="hero-intro">
+          <p>Kir’s Studio создаёт сайты для бизнеса: помогает понятно показать услуги, вызвать доверие и сделать связь с компанией удобной.</p>
+          <a class="btn" href="https://t.me/kgup3" target="_blank" rel="noopener noreferrer">Обсудить сайт</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="benefits" class="wrap section" aria-labelledby="benefits-title">
+      <div class="section-head">
+        <h2 class="section-title" id="benefits-title">Что получает <em>бизнес</em></h2>
+      </div>
+      <div class="benefits">
+        <article class="benefit"><div><h3>Ясное предложение</h3><p>Посетитель быстро понимает, чем вы занимаетесь и какую задачу можете решить.</p></div></article>
+        <article class="benefit"><div><h3>Уверенную подачу</h3><p>Дизайн и содержание помогают представить компанию серьёзно и последовательно.</p></div></article>
+        <article class="benefit"><div><h3>Простой контакт</h3><p>Человеку легко найти нужную информацию и перейти к разговору с вами.</p></div></article>
+      </div>
+    </section>
+
+    <section id="process" class="wrap section" aria-labelledby="process-title">
+      <div class="section-head">
+        <h2 class="section-title" id="process-title">От задачи <em>до запуска</em></h2>
+      </div>
+      <div class="process-list" aria-label="Как проходит работа">
+        <div class="process-item"><h3>Обсуждаем задачу</h3><span class="process-arrow" aria-hidden="true">↗</span></div>
+        <div class="process-item"><h3>Показываем концепт под ваш бизнес</h3><span class="process-arrow" aria-hidden="true">↗</span></div>
+        <div class="process-item"><h3>Согласуем</h3><span class="process-arrow" aria-hidden="true">↗</span></div>
+        <div class="process-item"><h3>Запускаем сайт</h3><span class="process-arrow" aria-hidden="true">↗</span></div>
+      </div>
+    </section>
+
+    <section id="audience" class="wrap section" aria-labelledby="audience-title">
+      <div class="section-head">
+        <h2 class="section-title" id="audience-title">Для кого <em>подойдёт</em> сайт</h2>
+      </div>
+      <div class="audience-layout">
+        <p class="audience-note">У каждого бизнеса своя задача. Подачу и структуру сайта подбираем под то, что важно именно вашим клиентам.</p>
+        <div class="audience-grid">
+          <div class="audience-card"><span>Услуги и<br>консалтинг</span></div>
+          <div class="audience-card"><span>Локальный<br>бизнес</span></div>
+          <div class="audience-card"><span>Образование<br>и курсы</span></div>
+          <div class="audience-card"><span>B2B и<br>производство</span></div>
+          <div class="audience-card"><span>Красота<br>и здоровье</span></div>
+          <div class="audience-card"><span>Креативные<br>проекты</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="final" id="contacts" aria-labelledby="final-title">
+      <div class="wrap">
+        <div class="eyebrow">Контакты</div>
+        <h2 id="final-title">Давайте сделаем<br>сайт для вашего<br>бизнеса.</h2>
+        <div class="final-bottom">
+          <p>Расскажите о задаче в Telegram или по почте — обсудим, какой сайт подойдёт вашему бизнесу.</p>
+          <div class="contact-options">
+            <a class="contact-link" href="https://t.me/kgup3" target="_blank" rel="noopener noreferrer"><span class="contact-label">Telegram</span><span class="contact-value">@kgup3</span></a>
+            <a class="contact-link" href="mailto:fcsmgolubjr@gmail.com"><span class="contact-label">Почта</span><span class="contact-value">fcsmgolubjr@gmail.com</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="wrap">
+    <a class="brand" href="#top" aria-label="Kir’s Studio — наверх"><span class="brand-mark" aria-hidden="true">K</span><span>Kir’s Studio</span></a>
+    <p>Сайты для бизнеса. Сделано с вниманием к делу.</p>
+  </footer>
+  <script>
+    (() => {
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reducedMotion) return;
+
+      const progress = document.querySelector('.scroll-progress');
+      let scrollFrame = 0;
+      const updateProgress = () => {
+        scrollFrame = 0;
+        const available = document.documentElement.scrollHeight - window.innerHeight;
+        progress.style.transform = `scaleX(${available > 0 ? window.scrollY / available : 0})`;
+      };
+      window.addEventListener('scroll', () => {
+        if (!scrollFrame) scrollFrame = requestAnimationFrame(updateProgress);
+      }, { passive: true });
+      window.addEventListener('resize', updateProgress, { passive: true });
+      updateProgress();
+
+      if (!('IntersectionObserver' in window)) return;
+      const targets = document.querySelectorAll('.section-title, .benefit, .process-item, .audience-note, .audience-card, .final .eyebrow, .final h2, .final-bottom');
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const element = entry.target;
+          const siblings = [...element.parentElement.children];
+          const position = siblings.indexOf(element);
+          const delay = element.matches('.benefit, .audience-card') ? Math.min(position * 85, 340) : 0;
+          element.animate([
+            { opacity: .55, transform: 'translateY(26px)' },
+            { opacity: 1, transform: 'translateY(0)' }
+          ], { duration: 720, delay, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' });
+          observer.unobserve(element);
+        }
+      }, { threshold: .13, rootMargin: '0px 0px -24px 0px' });
+      targets.forEach(element => observer.observe(element));
+    })();
+  </script>
+</body>
+</html>
