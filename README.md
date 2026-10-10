@@ -1,6 +1,6 @@
 # Kir’s Studio
 
-Персональный сайт независимого разработчика. GitHub Pages: https://fcsmgolubjr-bot.github.io/kir-s/
+Сайт команды дизайна и разработки. GitHub Pages: https://fcsmgolubjr-bot.github.io/kir-s/
 
 ## Содержание
 

@@ -10,3 +10,8 @@
 @media(max-width:500px){.style-description p{font-size:10px}.style-details{font-size:9px}.service-row p,.about p:not(.index){font-size:12px}.approach-list p,.approach-head>p:last-child{font-size:11px}.section-heading>div>p{font-size:11px}}
 
 @media(max-width:500px){.hero h1>span:first-child,.hero h1>span:nth-child(2){font-size:.74em}.hero h1>span:nth-child(2):before{content:'\00a0'}}
+
+/* Simplified hierarchy without decorative numbering or section labels. */
+.section-heading{grid-template-columns:1fr}.style-tabs button{grid-template-columns:1fr;padding-right:50px}.style-tabs small{grid-column:1}.service-row{grid-template-columns:1fr 1fr}.service-row h3{grid-column:1}.service-row p{grid-column:2}.approach-head{grid-template-columns:1.7fr 1.3fr}.approach-list h3{margin-top:8px}.about-grid{margin-top:0}.contact-top{justify-content:flex-end}.poster-heading>span:first-child{font-size:16px}.poster-bottom{justify-content:flex-end}
+@media(max-width:750px){.approach-head{grid-template-columns:1fr}.approach-head>p:last-child{grid-column:1}.service-row{grid-template-columns:1fr 1.2fr}}
+@media(max-width:500px){.service-row{grid-template-columns:1fr}.service-row p{grid-column:1}.style-tabs button{grid-template-columns:1fr}.style-tabs small{grid-column:1}}
