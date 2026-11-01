@@ -8,6 +8,9 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import hmac
+import os
+import urllib.request
 import re
 import secrets
 import time
@@ -15,7 +18,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 
 from game import COLORS, Match, TICK_SECONDS
@@ -54,6 +57,100 @@ rooms: dict[str, Room] = {}
 @app.get("/")
 async def index():
     return FileResponse(ROOT / "index.html")
+
+
+
+# The bot token is set in Render's environment, never committed to GitHub.
+BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
+BOT_WEBHOOK_SECRET = os.getenv("BOT_WEBHOOK_SECRET", "").strip() or secrets.token_hex(24)
+PUBLIC_URL = "https://snake-arena-telegram.onrender.com"
+SOLO_URL = "https://fcsmgolubjr-bot.github.io/kir-s/snake/"
+MULTI_URL = PUBLIC_URL + "/?mode=multi"
+
+def telegram_api(method: str, payload: dict) -> dict:
+    if not BOT_TOKEN:
+        raise RuntimeError("BOT_TOKEN is not configured")
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/{method}"
+    request = urllib.request.Request(
+        url,
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=10) as response:
+        data = json.load(response)
+    if not data.get("ok"):
+        raise RuntimeError(f"Telegram API {method} rejected the request")
+    return data
+
+def game_buttons() -> dict:
+    return {"inline_keyboard": [
+        [{"text": "🐍 Одиночная игра", "web_app": {"url": SOLO_URL}}],
+        [{"text": "⚔️ Мультиплеер (2–4)", "web_app": {"url": MULTI_URL}}],
+    ]}
+
+@app.on_event("startup")
+async def connect_telegram_bot() -> None:
+    if not BOT_TOKEN:
+        logger.info("Bot token not configured; /start buttons remain disabled")
+        return
+    try:
+        await asyncio.to_thread(
+            telegram_api, "setWebhook", {
+                "url": PUBLIC_URL + "/telegram/webhook",
+                "secret_token": BOT_WEBHOOK_SECRET,
+                "allowed_updates": ["message"],
+            }
+        )
+        await asyncio.to_thread(
+            telegram_api, "setChatMenuButton", {
+                "menu_button": {
+                    "type": "web_app", "text": "🎮 Режимы",
+                    "web_app": {"url": PUBLIC_URL},
+                }
+            }
+        )
+        logger.info("Telegram webhook and the single BotFather menu button configured")
+    except Exception:
+        logger.exception("Could not configure Telegram bot webhook")
+
+@app.post("/telegram/webhook")
+async def telegram_webhook(request: Request):
+    if not BOT_TOKEN or not hmac.compare_digest(
+        request.headers.get("X-Telegram-Bot-Api-Secret-Token", ""),
+        BOT_WEBHOOK_SECRET,
+    ):
+        return JSONResponse({"ok": False}, status_code=403)
+
+    body = await request.body()
+    if len(body) > 65536:
+        return JSONResponse({"ok": False}, status_code=413)
+    try:
+        update = json.loads(body)
+    except (ValueError, TypeError):
+        return JSONResponse({"ok": False}, status_code=400)
+
+    if isinstance(update, dict):
+        message = update.get("message") or {}
+        chat = message.get("chat") or {}
+        command = (message.get("text") or "").split(maxsplit=1)
+        if (
+            isinstance(message, dict)
+            and isinstance(chat, dict)
+            and chat.get("type") == "private"
+            and command and command[0].split("@", 1)[0] in ("/start", "/menu", "/help")
+        ):
+            try:
+                await asyncio.to_thread(
+                    telegram_api, "sendMessage", {
+                        "chat_id": chat["id"],
+                        "text": "🐍 Выбери, как играть в Змейку:",
+                        "reply_markup": game_buttons(),
+                    }
+                )
+            except Exception:
+                logger.exception("Could not send Telegram game selection buttons")
+    return {"ok": True}
 
 
 @app.get("/health")
