@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#081c1d">
+  <meta name="description" content="Мини-игра Змейка для Telegram">
+  <title>Змейка — Telegram Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root { --bg:#071b1b; --surface:#102b2a; --muted:#91aaa4; --text:#effff0; --green:#a6fb63; --border:#2b5146; }
+    * { box-sizing:border-box; }
+    html { background:var(--bg); }
+    body { margin:0; min-height:100dvh; background:radial-gradient(ellipse at 50% -8%,#25513f 0%,#0a2422 37%,#071b1b 78%); color:var(--text); font:16px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif; overflow-x:hidden; }
+    button {font:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+    button:focus-visible {outline:3px solid #fff; outline-offset:3px;}
+    .app {display:flex;flex-direction:column;align-items:center;gap:16px;margin:auto;width:min(100%,560px);padding:calc(env(safe-area-inset-top, 0px) + 17px) 18px calc(env(safe-area-inset-bottom, 0px) + 18px);}
+    header {display:flex;justify-content:space-between;align-items:center;width:100%;}
+    .brand {display:flex;align-items:center;gap:11px;}
+    .logo {width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:#a6fb63;color:#16402d;font-size:24px;font-weight:900;box-shadow:0 4px 0 #386b37;}
+    h1 {margin:0;font-size:26px;line-height:1.05;letter-spacing:-.9px;}
+    .sub {margin:5px 0 0;font-size:12px;color:var(--muted);}
+    .pill {border:1px solid #426451;border-radius:99px;color:#cdf9d1;font-size:11px;font-weight:750;padding:7px 9px;background:#15332d;}
+    .stats {display:grid;grid-template-columns:1fr 1fr;gap:11px;width:100%;}
+    .stat {background:linear-gradient(140deg,#153a33,#102b2a);border:1px solid var(--border);border-radius:16px;padding:12px 17px;display:flex;align-items:center;justify-content:space-between;}
+    .stat span {color:var(--muted);font-size:13px;font-weight:650;}
+    .stat b {font-size:27px;line-height:1;color:var(--green);font-variant-numeric:tabular-nums;}
+    .stat.best b {color:#ffe08f;}
+    .board-shell {width:min(100%,420px,49dvh);aspect-ratio:1;background:#12332d;border:7px solid #285248;border-radius:21px;overflow:hidden;position:relative;box-shadow:0 15px 36px #02110bb5, inset 0 0 0 2px #3c7161;touch-action:none;}
+    canvas {display:block;width:100%;height:100%;touch-action:none;}
+    .overlay {position:absolute;inset:0;background:#071e1bbd;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px;backdrop-filter:blur(2px);}
+    .overlay[hidden] {display:none;}
+    .overlay-emoji {font-size:46px;line-height:1;}
+    .overlay h2 {font-size:25px;margin:3px 0 0;}
+    .overlay p {font-size:14px;margin:0;color:#c4d7cf;max-width:260px;}
+    .primary {background:var(--green);border:0;color:#17391e;font-weight:850;border-radius:14px;padding:13px 27px;min-width:160px;box-shadow:0 5px 0 #467f32;margin-top:6px;}
+    .primary:active {transform:translateY(3px);box-shadow:0 2px 0 #467f32;}
+    .toolbar {width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    #status {color:#bbd4c8;font-size:13px;}
+    .pause {padding:9px 16px;background:#23463c;border:1px solid #44745c;color:#e8fff1;border-radius:12px;font-weight:750;}
+    .pause:disabled {opacity:.45;cursor:default;}
+    .dpad {display:grid;grid-template-columns:repeat(3,59px);grid-template-rows:repeat(2,55px);justify-content:center;gap:7px;}
+    .dpad button {border:1px solid #4e7766;background:linear-gradient(#214c3c,#183b32);color:#e1ffe0;border-radius:14px;font-size:25px;font-weight:900;box-shadow:0 4px 0 #0a2920;}
+    .dpad button:active {transform:translateY(2px);box-shadow:0 2px 0 #0a2920;background:#35694a;}
+    .up {grid-column:2;grid-row:1}.left {grid-column:1;grid-row:2}.down {grid-column:2;grid-row:2}.right {grid-column:3;grid-row:2}
+    footer {text-align:center;color:#7eaca0;font-size:12px;padding-top:2px;}
+    @media(max-height:720px){.app{gap:10px;padding-top:10px}.logo{width:38px;height:38px}.board-shell{width:min(100%,365px,46dvh)}.dpad{grid-template-rows:repeat(2,44px);grid-template-columns:repeat(3,53px)}.stat{padding:8px 15px}h1{font-size:23px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header><div class="brand"><div class="logo" aria-hidden="true">▦</div><div><h1>Змейка</h1><p class="sub">Простая игра внутри Telegram</p></div></div><span class="pill">MINI APP</span></header>
+    <div class="stats" aria-live="polite"><div class="stat"><span>Счёт</span><b id="score">0</b></div><div class="stat best"><span>Рекорд</span><b id="best">0</b></div></div>
+    <div class="board-shell" id="boardShell"><canvas id="board" aria-label="Игровое поле змейки размером 19 на 19 клеток" width="380" height="380"></canvas>
+      <div class="overlay" id="overlay"><div class="overlay-emoji" id="overlayIcon">🐍</div><h2 id="overlayTitle">Готов играть?</h2><p id="overlayText">Собирай яблоки, расти и не касайся стен или хвоста.</p><button class="primary" id="start">Играть</button></div>
+    </div>
+    <div class="toolbar"><span id="status">Управление: свайпы или стрелки</span><button class="pause" id="pause" disabled>Пауза</button></div>
+    <div class="dpad" role="group" aria-label="Управление змейкой"><button class="up" data-dir="up" aria-label="Вверх">↑</button><button class="left" data-dir="left" aria-label="Влево">←</button><button class="down" data-dir="down" aria-label="Вниз">↓</button><button class="right" data-dir="right" aria-label="Вправо">→</button></div>
+    <footer>Свайп на поле • Стрелки или WASD на компьютере</footer>
+  </main>
+<script>
+(() => {
+  'use strict';
+  const GRID=19, STORAGE_KEY='telegram-snake-best-v1';
+  const canvas=document.querySelector('#board'), ctx=canvas.getContext('2d');
+  const overlay=document.querySelector('#overlay'), titleEl=document.querySelector('#overlayTitle'), descEl=document.querySelector('#overlayText'), iconEl=document.querySelector('#overlayIcon');
+  const startBtn=document.querySelector('#start'), pauseBtn=document.querySelector('#pause'), scoreEl=document.querySelector('#score'), bestEl=document.querySelector('#best'), statusEl=document.querySelector('#status');
+  const tg=window.Telegram?.WebApp;
+  if(tg){ try { tg.ready(); tg.expand(); tg.setHeaderColor?.('#081c1d'); tg.setBackgroundColor?.('#081c1d'); } catch(e) {console.debug('Telegram integration unavailable',e)} }
+  const DIRS={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};
+  let snake=[],dir=DIRS.right,nextDir=null,turnUsed=false,food={x:12,y:9};
+  let state='ready',score=0,best=0,timer=null,cell=20,size=380;
+  try { best=Number(localStorage.getItem(STORAGE_KEY))||0; }catch(e){}
+  bestEl.textContent=String(best);
+
+  function clearLoop(){if(timer!==null){clearInterval(timer);timer=null}}
+  function showOverlay(icon,title,desc,button){iconEl.textContent=icon;titleEl.textContent=title;descEl.textContent=desc;startBtn.textContent=button;overlay.hidden=false}
+  function hideOverlay(){overlay.hidden=true}
+  function setState(s){state=s;pauseBtn.disabled=!(s==='playing'||s==='paused');pauseBtn.textContent=s==='paused'?'Продолжить':'Пауза';}
+  function soundVibrate(){try{tg?.HapticFeedback?.selectionChanged?.()}catch(e){}}
+  function saveBest(){if(score>best){best=score;bestEl.textContent=String(best);try{localStorage.setItem(STORAGE_KEY,String(best))}catch(e){}}}
+  function placeFood(){const empty=[];for(let y=0;y<GRID;y++)for(let x=0;x<GRID;x++){if(!snake.some(s=>s.x===x&&s.y===y))empty.push({x,y});}
+    food=empty.length?empty[Math.floor(Math.random()*empty.length)]:null;
+  }
+  function initialize(){snake=[{x:9,y:9},{x:8,y:9},{x:7,y:9}];dir=DIRS.right;nextDir=null;turnUsed=false;score=0;scoreEl.textContent='0';placeFood();draw()}
+  function start(){clearLoop();initialize();setState('playing');statusEl.textContent='Собирай яблоки!';hideOverlay();schedule()}
+  function schedule(){clearLoop();if(state==='playing')timer=setInterval(tick,Math.max(68,145-score*2));}
+  function pause(){if(state==='playing'){clearLoop();setState('paused');statusEl.textContent='Пауза';showOverlay('⏸','Пауза','Продолжи, когда будешь готов.','Продолжить');}else if(state==='paused'){resume();}}
+  function resume(){setState('playing');hideOverlay();statusEl.textContent='Собирай яблоки!';schedule()}
+  function endGame(won=false){clearLoop();setState(won?'won':'over');saveBest();statusEl.textContent=won?'Победа!':'Игра окончена';showOverlay(won?'🏆':'🐍',won?'Ты победил!':'Игра окончена',`Твой счёт: ${score}. Рекорд: ${best}.`,'Ещё раз');try{tg?.HapticFeedback?.notificationOccurred?.(won?'success':'error')}catch(e){}}
+  function tick(){
+    if(state!=='playing')return;
+    if(nextDir){dir=nextDir;nextDir=null;} turnUsed=false;
+    const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+    if(head.x<0||head.y<0||head.x>=GRID||head.y>=GRID){endGame();return;}
+    const eating=food&&head.x===food.x&&head.y===food.y;
+    // The tail cell becomes free on moves without eating.
+    const occupied=eating?snake:snake.slice(0,-1);
+    if(occupied.some(s=>s.x===head.x&&s.y===head.y)){endGame();return;}
+    snake.unshift(head);if(!eating)snake.pop();
+    if(eating){score+=1;scoreEl.textContent=String(score);saveBest();soundVibrate();placeFood();schedule();if(!food){draw();endGame(true);return;}}
+    draw();
+  }
+  function turn(name){
+    const next=DIRS[name];if(!next || state!=='playing'||turnUsed)return;
+    if(next.x===-dir.x&&next.y===-dir.y)return;
+    if(next.x===dir.x&&next.y===dir.y)return;
+    nextDir=next;turnUsed=true;
+  }
+  function rounded(x,y,w,h,r,color){ctx.fillStyle=color;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);ctx.fill();}
+  function draw(){
+    ctx.clearRect(0,0,size,size);
+    ctx.fillStyle='#153c33';ctx.fillRect(0,0,size,size);
+    const c=cell;
+    for(let y=0;y<GRID;y++)for(let x=0;x<GRID;x++){
+      ctx.fillStyle=(x+y)%2?'#164136':'#19473b';ctx.fillRect(x*c,y*c,c+.5,c+.5);
+    }
+    if(food){const fx=food.x*c+c/2,fy=food.y*c+c/2;
+      ctx.save();ctx.shadowColor='#ff6c75';ctx.shadowBlur=c*.32;ctx.fillStyle='#ff6d70';ctx.beginPath();ctx.arc(fx,fy+c*.04,c*.32,0,Math.PI*2);ctx.fill();ctx.restore();
+      ctx.strokeStyle='#8aef70';ctx.lineWidth=Math.max(1.3,c*.10);ctx.beginPath();ctx.moveTo(fx,fy-c*.21);ctx.quadraticCurveTo(fx+c*.1,fy-c*.51,fx+c*.28,fy-c*.36);ctx.stroke();
+      ctx.fillStyle='#ffe3b1';ctx.beginPath();ctx.arc(fx-c*.12,fy-c*.08,c*.07,0,Math.PI*2);ctx.fill();
+    }
+    for(let i=snake.length-1;i>=0;i--){const s=snake[i];const pad=c*.09;
+      rounded(s.x*c+pad,s.y*c+pad,c-pad*2,c-pad*2,c*.25,i===0?'#c2fb78':i%2?'#6cdb66':'#85e976');
+    }
+    if(snake.length){const h=snake[0],cx=h.x*c+c/2,cy=h.y*c+c/2;
+      ctx.fillStyle='#154a35';const front=c*.18,side=c*.20;
+      const eyes=(dir.x!==0)?[{x:cx+dir.x*front,y:cy-side},{x:cx+dir.x*front,y:cy+side}]:[{x:cx-side,y:cy+dir.y*front},{x:cx+side,y:cy+dir.y*front}];
+      for(const e of eyes){ctx.beginPath();ctx.arc(e.x,e.y,c*.075,0,Math.PI*2);ctx.fill();}
+    }
+  }
+  function fitCanvas(){const bounds=canvas.getBoundingClientRect();if(!bounds.width)return;const px=Math.min(devicePixelRatio||1,2),w=Math.round(bounds.width*px),h=Math.round(bounds.height*px);canvas.width=w;canvas.height=h;size=Math.min(w,h);cell=size/GRID;draw();}
+  new ResizeObserver(fitCanvas).observe(canvas);
+  window.addEventListener('resize',fitCanvas);
+  const keyMap={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right',W:'up',S:'down',A:'left',D:'right'};
+  document.addEventListener('keydown',e=>{if(keyMap[e.key]){e.preventDefault();turn(keyMap[e.key]);}else if(e.code==='Space'){e.preventDefault();if(state==='playing'||state==='paused')pause();else start();}});
+  document.querySelectorAll('[data-dir]').forEach(btn=>btn.addEventListener('pointerdown',e=>{e.preventDefault();turn(btn.dataset.dir)}));
+  let touchStart=null;
+  canvas.addEventListener('pointerdown',e=>{touchStart={x:e.clientX,y:e.clientY};});
+  canvas.addEventListener('pointerup',e=>{if(!touchStart)return;const dx=e.clientX-touchStart.x,dy=e.clientY-touchStart.y;touchStart=null;if(Math.max(Math.abs(dx),Math.abs(dy))<15)return;turn(Math.abs(dx)>Math.abs(dy)?dx>0?'right':'left':dy>0?'down':'up');});
+  startBtn.addEventListener('click',()=>state==='paused'?resume():start());
+  pauseBtn.addEventListener('click',pause);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='playing')pause();});
+  initialize();setState('ready');showOverlay('🐍','Готов играть?','Собирай яблоки, расти и не касайся стен или хвоста.','Играть');
+})();
+</script>
+</body>
+</html>
