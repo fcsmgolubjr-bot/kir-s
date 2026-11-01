@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#071a1c">
+  <title>Snake Arena — 2–4 игрока</title>
+  <style>
+    :root{--bg:#071a1c;--panel:#113034;--panel2:#164047;--line:#28575a;--text:#e7fcf4;--muted:#96b9b6;--lime:#60f2b3;--gold:#ffd571}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text)}
+    body{font:500 16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;overscroll-behavior:none}
+    button,input{font:inherit}button{cursor:pointer;border:0}button:disabled{cursor:not-allowed;opacity:.43}
+    button:focus-visible,input:focus-visible{outline:3px solid #ffd571;outline-offset:3px}
+    .shell{width:min(100%,520px);margin:0 auto;min-height:100dvh;padding:18px 16px 28px;display:flex;flex-direction:column;gap:15px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px}.logo{font-size:23px;font-weight:900;letter-spacing:-.8px}.logo b{color:var(--lime)}
+    .signal{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);border:1px solid var(--line);padding:7px 11px;border-radius:50px}
+    .signal:before{content:"";width:8px;height:8px;background:#e09b50;border-radius:50%}.signal.online:before{background:var(--lime)}
+    .card{background:linear-gradient(145deg,#16383b,#102a30);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 10px 30px #001b1b40}
+    .screen{display:none}.screen.active{display:block}h1,h2,p{margin:0}h1{font-size:27px;line-height:1.15}h2{font-size:21px}p{color:var(--muted)}.subtitle{margin:10px 0 20px}
+    label{display:block;color:#c8e8dc;font-size:13px;font-weight:700;margin:12px 0 6px}
+    input{width:100%;padding:14px 15px;border-radius:12px;border:1px solid #44756f;background:#071f22;color:white;outline:none;font-size:17px}
+    .mode{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:9px 0 18px}
+    .mode button{border:1px solid #43736c;background:#153e3e;border-radius:12px;color:#c7e5dc;padding:14px 6px;font-weight:900;font-size:17px}
+    .mode button.selected{background:#1d6557;border-color:#63e6a7;color:#fff;box-shadow:inset 0 0 0 1px #54dc9b}
+    .btn{width:100%;padding:14px 16px;border-radius:13px;background:var(--lime);color:#09302b;font-weight:900;font-size:16px;min-height:52px}
+    .btn.alt{background:#214c4d;color:#e4fff3;border:1px solid #398477}.btn.ghost{background:transparent;border:1px solid #416661;color:#ddf6ed}
+    .split{display:flex;align-items:center;gap:12px;margin:18px 0;color:#90b6aa}.split:before,.split:after{content:"";height:1px;background:var(--line);flex:1}
+    .joinrow{display:flex;gap:9px}.joinrow input{flex:1;min-width:0}.joinrow button{width:110px;min-width:110px}.hint{font-size:12px;color:#82aaa2;margin-top:14px}
+    .roomcode{text-align:center;background:#071e21;border:1px dashed #4f8579;border-radius:14px;padding:13px 8px;margin:16px 0 8px;letter-spacing:8px;font-size:32px;font-weight:900;color:var(--gold);font-variant-numeric:tabular-nums}
+    .members{display:flex;flex-direction:column;gap:8px;margin:15px 0}
+    .member{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid #2b5954;border-radius:12px;background:#0d2a2d}
+    .dot{width:15px;height:15px;border-radius:50%;flex:none}.member .name{font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.member .state{font-size:12px;color:#acd6c3}
+    .actions{display:grid;gap:9px;margin-top:16px}.row{display:flex;gap:9px}.row>*{flex:1}
+    .boardhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:11px}.meta{display:flex;gap:9px;align-items:center;font-size:12px;color:var(--muted)}
+    .board-shell{padding:7px;border:2px solid #35695f;border-radius:15px;background:#051619;box-shadow:inset 0 0 0 1px #163c39}
+    canvas{display:block;width:100%;height:auto;aspect-ratio:26 / 20;touch-action:none;border-radius:9px;background:#092627}
+    .scores{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:13px 0}
+    .score{display:flex;gap:9px;align-items:center;border:1px solid #2c5d58;background:#103436;padding:9px;border-radius:10px;font-size:13px}
+    .score .who{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}.score strong{color:#f8e8ae}.score.dead{opacity:.48}
+    .pad{margin:13px auto 0;display:grid;grid-template-columns:repeat(3,66px);grid-template-rows:repeat(2,55px);gap:8px;justify-content:center;touch-action:none}
+    .arrow{background:#1b5250;border:1px solid #44937c;border-radius:13px;font-size:24px;color:#e5fff2;touch-action:none;user-select:none}
+    .arrow:active{background:#3d9280}.up{grid-column:2;grid-row:1}.left{grid-column:1;grid-row:2}.down{grid-column:2;grid-row:2}.right{grid-column:3;grid-row:2}
+    .bigcount{font-size:68px;font-weight:1000;color:var(--gold);text-align:center;margin:20px 0;line-height:1}
+    .result{font-size:28px;text-align:center;color:var(--gold);font-weight:900;margin:12px 0}.error{color:#ffb7a2;font-size:13px;margin-top:12px;min-height:18px}
+    .foot{text-align:center;font-size:12px;color:#779d95;margin-top:auto;padding-top:8px}
+    @media(min-width:640px){.shell{padding-top:30px}.pad{grid-template-columns:repeat(3,72px);grid-template-rows:repeat(2,60px)}}
+    @media(max-width:360px){.card{padding:14px}.roomcode{font-size:26px}.mode button{font-size:15px}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <div class="top"><div class="logo">🐍 SNAKE <b>ARENA</b></div><span id="signal" class="signal">Не подключено</span></div>
+  <section id="home" class="screen active card">
+    <h1>Змейка с друзьями</h1><p class="subtitle">Одна арена · 2–4 человека · каждый со своего телефона.</p>
+    <label for="nick">Твоё имя</label><input id="nick" maxlength="18" autocomplete="nickname" placeholder="Игрок" />
+    <label>Игроков в комнате</label>
+    <div class="mode" id="modes"><button class="selected" data-slots="2" type="button">1 на 1</button><button data-slots="3" type="button">3 игрока</button><button data-slots="4" type="button">4 игрока</button></div>
+    <button id="create" class="btn" type="button">Создать комнату</button>
+    <div class="split">или</div>
+    <label for="code">Войти по коду друга</label>
+    <div class="joinrow"><input id="code" maxlength="6" placeholder="ABC123" autocapitalize="characters" spellcheck="false"/><button id="join" type="button" class="btn alt">Войти</button></div>
+    <div class="hint">Нужен интернет: игра синхронизируется через сервер, а не между браузерами напрямую.</div>
+  </section>
+  <section id="lobby" class="screen card">
+    <h2>Комната <span id="room-label"></span></h2><p id="lobbyinfo" class="subtitle">Ожидаем игроков…</p>
+    <div id="roomcode" class="roomcode"></div>
+    <button id="share" type="button" class="btn alt">🔗 Поделиться приглашением</button>
+    <div id="members" class="members"></div>
+    <div class="actions"><button id="ready" type="button" class="btn">Готов!</button><button id="leave" type="button" class="btn ghost">Выйти из комнаты</button></div>
+  </section>
+  <section id="countdown" class="screen card"><h2 style="text-align:center">Матч начинается</h2><div class="bigcount" id="count">3</div><p style="text-align:center">Приготовься управлять змейкой!</p></section>
+  <section id="playing" class="screen">
+    <div class="boardhead"><h2>Арена</h2><div class="meta">⏱ <span id="remaining">03:00</span> · <span id="gamecode"></span></div></div>
+    <div class="board-shell"><canvas id="board" width="780" height="600" aria-label="Игровое поле с цветными змейками"></canvas></div>
+    <div id="scores" class="scores"></div>
+    <p style="text-align:center;font-size:13px">Свайп по полю или стрелки на экране. На компьютере — WASD.</p>
+    <div class="pad" id="pad"><button class="arrow up" data-dir="up" aria-label="Вверх">▲</button><button class="arrow left" data-dir="left" aria-label="Влево">◀</button><button class="arrow down" data-dir="down" aria-label="Вниз">▼</button><button class="arrow right" data-dir="right" aria-label="Вправо">▶</button></div>
+  </section>
+  <section id="finished" class="screen card"><h2 style="text-align:center">Матч завершён</h2><div id="result" class="result"></div><div id="resultscores" class="members"></div><div class="actions"><button id="again" class="btn">Ещё один матч</button><button id="quit" class="btn ghost">В главное меню</button></div></section>
+  <p id="error" class="error" role="status" aria-live="polite"></p>
+  <p class="foot">Только игра на очки · без ставок и денежных призов</p>
+</div>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const screens = ['home','lobby','countdown','playing','finished'];
+  const app = { ws:null, me:'', room:'', slots:2, players:[], ready:false, phase:'home', last:null, previousRoom:null };
+  const tg=window.Telegram?.WebApp;
+  try {tg?.ready();tg?.expand();} catch(_){}
+  const getStoredName=()=>{try{return localStorage.getItem('snake_name')||'';}catch(_){return '';}};
+  const saveName=name=>{try{localStorage.setItem('snake_name',name);}catch(_){}};
+  const suggestedName = tg?.initDataUnsafe?.user?.first_name || getStoredName();
+  $('nick').value=suggestedName.slice(0,18);
+  const codeFromLink = new URLSearchParams(location.search).get('room') || tg?.initDataUnsafe?.start_param || '';
+  if(/^[A-Z2-9]{6}$/i.test(codeFromLink)) $('code').value=codeFromLink.toUpperCase();
+  const show=(screen)=>{app.phase=screen;for(const s of screens)$(s).classList.toggle('active',s===screen);};
+  const error=msg=>{ $('error').textContent=msg||''; };
+  const signal=(good,text)=>{$('signal').classList.toggle('online',good);$('signal').textContent=text;};
+  const link=()=>{const url=new URL(location.href);url.searchParams.set('room',app.room);return url.href;};
+  const send=payload=>{if(app.ws?.readyState===WebSocket.OPEN)app.ws.send(JSON.stringify(payload));};
+  const serverUrl=()=>{
+    // A single FastAPI service hosts this page and the websocket at /ws.
+    // A separate static host can set window.SNAKE_WS_URL to a secure wss:// address.
+    if(typeof window.SNAKE_WS_URL==='string' && window.SNAKE_WS_URL.trim())return window.SNAKE_WS_URL.trim();
+    return `${location.protocol==='https:'?'wss':'ws'}://${location.host}/ws`;
+  };
+  function connect(initial) {
+    error('');
+    if(app.ws)try{app.ws.close();}catch(_){}
+    const ws=new WebSocket(serverUrl());app.ws=ws;
+    signal(false,'Соединение…');
+    const guard=setTimeout(()=>{if(ws.readyState!==WebSocket.OPEN)ws.close();},10000);
+    ws.addEventListener('open',()=>{clearTimeout(guard);if(app.ws!==ws)return;signal(true,'На связи');send(initial);});
+    ws.addEventListener('error',()=>{if(app.ws===ws)error('Не удалось подключиться. Проверь адрес сервера и интернет.');});
+    ws.addEventListener('close',()=>{clearTimeout(guard);if(app.ws!==ws)return;signal(false,'Нет соединения');if(app.phase!=='home'){show('home');error('Связь с матчем потеряна. Создай или войди в комнату заново.');}});
+    ws.addEventListener('message',event=>{if(app.ws!==ws)return;let m;try{m=JSON.parse(event.data);}catch(_){return;}onMessage(m);});
+  }
+  function start(type) {
+    const name=$('nick').value.trim().slice(0,18)||'Игрок';saveName(name);
+    const payload={type,name};if(type==='create')payload.slots=app.slots;else {payload.code=$('code').value.replace(/[^A-Z2-9]/gi,'').toUpperCase();if(payload.code.length!==6){error('Введи шестизначный код комнаты.');return;}}
+    $('create').disabled=true;$('join').disabled=true;
+    try {connect(payload);} catch (e) {error('Не получается открыть WebSocket: '+e.message);} finally {setTimeout(()=>{$('create').disabled=false;$('join').disabled=false;},500);}
+  }
+  const escapeText=text=>String(text).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
+  function drawLobby(m){
+    app.players=m.players||[];app.slots=m.slots;app.room=m.code;app.ready=Boolean(app.players.find(p=>p.id===app.me)?.ready);
+    $('room-label').textContent=m.code;$('roomcode').textContent=m.code;
+    $('lobbyinfo').textContent=`Игроков: ${app.players.length} / ${m.slots}. Начнём, когда все будут готовы.`;
+    $('members').innerHTML=app.players.map(p=>`<div class="member"><i class="dot" style="background:${p.color}"></i><span class="name">${escapeText(p.name)}${p.id===app.me?' (ты)':''}</span><span class="state">${p.ready?'✓ Готов':'Ожидание'}</span></div>`).join('');
+    $('ready').textContent=app.ready?'Отменить готовность':'Я готов!';
+    if(m.phase==='lobby')show('lobby');
+  }
+  const formatClock=sec=>`${String(Math.floor(Math.max(sec,0)/60)).padStart(2,'0')}:${String(Math.max(sec,0)%60).padStart(2,'0')}`;
+  function onMessage(m) {
+    switch(m.type){
+      case 'welcome':app.me=m.id;app.room=m.code;break;
+      case 'lobby':drawLobby(m);break;
+      case 'countdown':show('countdown');$('count').textContent=m.seconds;break;
+      case 'match_start':show('playing');$('gamecode').textContent=app.room;break;
+      case 'state':app.last=m;draw(m);break;
+      case 'result':{
+        const mine=m.winnerId===app.me;
+        $('result').textContent=m.winnerId?(mine?'🏆 Победа!':`🏆 Победил ${m.players.find(p=>p.id===m.winnerId)?.name||'соперник'}`):'🤝 Ничья';
+        $('resultscores').innerHTML=m.players.sort((a,b)=>b.score-a.score).map(p=>`<div class="member"><i class="dot" style="background:${p.color}"></i><span class="name">${escapeText(p.name)}</span><strong>${p.score} 🍎</strong></div>`).join('');
+        show('finished');break;
+      }
+      case 'error':error(m.message||'Ошибка сервера');break;
+    }
+  }
+  const canvas=$('board'),ctx=canvas.getContext('2d');
+  function draw(s) {
+    if(app.phase==='countdown')show('playing');
+    if(app.phase!=='playing')return;
+    const w=s.width||26,h=s.height||20,tile=30;
+    if(canvas.width!==w*tile)canvas.width=w*tile;if(canvas.height!==h*tile)canvas.height=h*tile;
+    ctx.fillStyle='#0a2829';ctx.fillRect(0,0,canvas.width,canvas.height);
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){if((x+y)%2===0){ctx.fillStyle='#103032';ctx.fillRect(x*tile,y*tile,tile,tile);}}
+    for(const [x,y] of s.food){ctx.fillStyle='#d95c59';ctx.beginPath();ctx.arc(x*tile+15,y*tile+15,10,0,Math.PI*2);ctx.fill();ctx.fillStyle='#8bdb84';ctx.fillRect(x*tile+15,y*tile+2,4,7);}
+    for(const snake of s.snakes){for(let i=snake.body.length-1;i>=0;i--){const [x,y]=snake.body[i];ctx.globalAlpha=snake.alive?1:.24;ctx.fillStyle=snake.color;ctx.beginPath();ctx.roundRect(x*tile+2,y*tile+2,26,26,i===0?9:6);ctx.fill();if(i===0&&snake.alive){ctx.fillStyle='#07292a';ctx.beginPath();ctx.arc(x*tile+11,y*tile+11,3,0,Math.PI*2);ctx.arc(x*tile+20,y*tile+11,3,0,Math.PI*2);ctx.fill();}}}
+    ctx.globalAlpha=1;
+    $('remaining').textContent=formatClock(s.remaining);
+    $('scores').innerHTML=s.snakes.map(p=>`<div class="score ${p.alive?'':'dead'}"><i class="dot" style="background:${p.color}"></i><span class="who">${escapeText(p.name)}${p.id===app.me?' (ты)':''}</span><strong>${p.score} 🍎</strong></div>`).join('');
+  }
+  const turn=direction=>{if(app.phase==='playing')send({type:'turn',direction});};
+  document.querySelectorAll('#modes button').forEach(b=>b.addEventListener('click',()=>{app.slots=Number(b.dataset.slots);document.querySelectorAll('#modes button').forEach(x=>x.classList.toggle('selected',x===b));}));
+  $('create').addEventListener('click',()=>start('create'));$('join').addEventListener('click',()=>start('join'));
+  $('code').addEventListener('keydown',e=>{if(e.key==='Enter')start('join');});
+  $('ready').addEventListener('click',()=>send({type:'ready',value:!app.ready}));
+  const leave=()=>{if(app.ws){const sock=app.ws;app.ws=null;sock.close();}app.me='';app.room='';show('home');signal(false,'Не подключено');error('');};
+  $('leave').addEventListener('click',leave);$('quit').addEventListener('click',leave);
+  $('again').addEventListener('click',()=>send({type:'again'}));
+  $('share').addEventListener('click',async()=>{const url=link();const text=`Заходи в Змейку! Комната ${app.room}\n${url}`;try{if(navigator.share)await navigator.share({title:'Змейка с друзьями',text,url});else{await navigator.clipboard.writeText(text);$('share').textContent='✓ Приглашение скопировано';setTimeout(()=>$('share').textContent='🔗 Поделиться приглашением',1500);}}catch(e){if(e.name!=='AbortError')error('Ссылка: '+url);}});
+  document.querySelectorAll('[data-dir]').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();turn(b.dataset.dir);}));
+  const keys={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',a:'left',s:'down',d:'right',W:'up',A:'left',S:'down',D:'right'};
+  window.addEventListener('keydown',e=>{const dir=keys[e.key];if(dir&&app.phase==='playing'){e.preventDefault();turn(dir);}});
+  let touch=null;canvas.addEventListener('touchstart',e=>{if(e.touches.length)touch={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});
+  canvas.addEventListener('touchend',e=>{if(!touch||!e.changedTouches.length)return;const dx=e.changedTouches[0].clientX-touch.x,dy=e.changedTouches[0].clientY-touch.y;touch=null;if(Math.max(Math.abs(dx),Math.abs(dy))<22)return;turn(Math.abs(dx)>Math.abs(dy)?dx>0?'right':'left':dy>0?'down':'up');},{passive:true});
+})();
+</script>
+</body>
+</html>
