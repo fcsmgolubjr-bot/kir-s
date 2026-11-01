@@ -110,8 +110,10 @@
   const saveName=name=>{try{localStorage.setItem('snake_name',name);}catch(_){}};
   const suggestedName = tg?.initDataUnsafe?.user?.first_name || getStoredName();
   $('nick').value=suggestedName.slice(0,18);
-  const codeFromLink = new URLSearchParams(location.search).get('room') || tg?.initDataUnsafe?.start_param || '';
+  const urlParams = new URLSearchParams(location.search);
+  const codeFromLink = urlParams.get('room') || tg?.initDataUnsafe?.start_param || '';
   if(/^[A-Z2-9]{6}$/i.test(codeFromLink)){ $('code').value=codeFromLink.toUpperCase(); app.mode='multi'; $('choose').classList.remove('active'); $('home').classList.add('active');app.phase='home'; }
+  else if(urlParams.get('mode') === 'multi'){ app.mode='multi'; $('choose').classList.remove('active'); $('home').classList.add('active'); app.phase='home'; }
   const show=(screen)=>{app.phase=screen;for(const s of screens)$(s).classList.toggle('active',s===screen);};
   const error=msg=>{ $('error').textContent=msg||''; };
   const signal=(good,text)=>{$('signal').classList.toggle('online',good);$('signal').textContent=text;};
