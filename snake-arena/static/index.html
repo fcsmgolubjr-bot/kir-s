@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
   <meta name="theme-color" content="#071a1c">
-  <title>Snake Arena — 2–4 игрока</title>
+  <title>Snake Arena — одиночная игра и мультиплеер</title>
   <style>
     :root{--bg:#071a1c;--panel:#113034;--panel2:#164047;--line:#28575a;--text:#e7fcf4;--muted:#96b9b6;--lime:#60f2b3;--gold:#ffd571}
     *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text)}
@@ -19,6 +19,13 @@
     .screen{display:none}.screen.active{display:block}h1,h2,p{margin:0}h1{font-size:27px;line-height:1.15}h2{font-size:21px}p{color:var(--muted)}.subtitle{margin:10px 0 20px}
     label{display:block;color:#c8e8dc;font-size:13px;font-weight:700;margin:12px 0 6px}
     input{width:100%;padding:14px 15px;border-radius:12px;border:1px solid #44756f;background:#071f22;color:white;outline:none;font-size:17px}
+    .choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:20px 0 14px}
+    .choice{min-height:170px;border:1px solid #42766c;border-radius:17px;background:linear-gradient(145deg,#1b5548,#113a3f);color:#eafff6;padding:18px 13px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;text-align:left;gap:8px}
+    .choice:active{transform:scale(.985)}.choice .symbol{font-size:40px;line-height:1.2}.choice strong{font-size:18px;font-weight:900}.choice small{font-size:12px;color:#b4d9ce;font-weight:500}
+    .choice.multiplayer{background:linear-gradient(145deg,#30567b,#173e4d)}
+    .solo-tools{display:none;align-items:center;justify-content:space-between;gap:10px;margin:12px 0 3px}
+    .solo-tools.visible{display:flex}.solo-tools button{background:#184545;border:1px solid #3e7b72;border-radius:10px;padding:8px 13px;color:#e2fff1;font-weight:800}
+    .solo-tools span{color:#9fc6b8;font-size:12px}.solo-paused{display:none;text-align:center;padding:12px;color:var(--gold);font-size:15px;font-weight:900}.solo-paused.visible{display:block}
     .mode{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:9px 0 18px}
     .mode button{border:1px solid #43736c;background:#153e3e;border-radius:12px;color:#c7e5dc;padding:14px 6px;font-weight:900;font-size:17px}
     .mode button.selected{background:#1d6557;border-color:#63e6a7;color:#fff;box-shadow:inset 0 0 0 1px #54dc9b}
@@ -50,7 +57,15 @@
 <body>
 <div class="shell">
   <div class="top"><div class="logo">🐍 SNAKE <b>ARENA</b></div><span id="signal" class="signal">Не подключено</span></div>
-  <section id="home" class="screen active card">
+  <section id="choose" class="screen active card">
+    <h1>Выбирай режим</h1><p class="subtitle">Одна игра — два способа играть. Начни один или пригласи друзей.</p>
+    <div class="choices">
+      <button class="choice" id="solo-choice" type="button"><span class="symbol">🍎</span><strong>Одиночная</strong><small>Классическая змейка, рекорд и пауза</small></button>
+      <button class="choice multiplayer" id="multi-choice" type="button"><span class="symbol">⚔️</span><strong>С друзьями</strong><small>Онлайн-матчи на 2–4 игроков</small></button>
+    </div>
+    <p class="hint">В одиночную игру можно играть без подключения к игровому серверу после загрузки страницы.</p>
+  </section>
+  <section id="home" class="screen card">
     <h1>Змейка с друзьями</h1><p class="subtitle">Одна арена · 2–4 человека · каждый со своего телефона.</p>
     <label for="nick">Твоё имя</label><input id="nick" maxlength="18" autocomplete="nickname" placeholder="Игрок" />
     <label>Игроков в комнате</label>
@@ -60,6 +75,7 @@
     <label for="code">Войти по коду друга</label>
     <div class="joinrow"><input id="code" maxlength="6" placeholder="ABC123" autocapitalize="characters" spellcheck="false"/><button id="join" type="button" class="btn alt">Войти</button></div>
     <div class="hint">Нужен интернет: игра синхронизируется через сервер, а не между браузерами напрямую.</div>
+    <div class="actions"><button id="back-modes" type="button" class="btn ghost">← Выбор режима</button></div>
   </section>
   <section id="lobby" class="screen card">
     <h2>Комната <span id="room-label"></span></h2><p id="lobbyinfo" class="subtitle">Ожидаем игроков…</p>
@@ -71,7 +87,9 @@
   <section id="countdown" class="screen card"><h2 style="text-align:center">Матч начинается</h2><div class="bigcount" id="count">3</div><p style="text-align:center">Приготовься управлять змейкой!</p></section>
   <section id="playing" class="screen">
     <div class="boardhead"><h2>Арена</h2><div class="meta">⏱ <span id="remaining">03:00</span> · <span id="gamecode"></span></div></div>
+    <div class="solo-tools" id="solo-tools"><button id="solo-pause" type="button">⏸ Пауза</button><span>Рекорд: <b id="solo-best">0</b> 🍎</span><button id="solo-exit" type="button">✕ Выйти</button></div>
     <div class="board-shell"><canvas id="board" width="780" height="600" aria-label="Игровое поле с цветными змейками"></canvas></div>
+    <div class="solo-paused" id="solo-paused">⏸ Пауза — нажми «Продолжить»</div>
     <div id="scores" class="scores"></div>
     <p style="text-align:center;font-size:13px">Свайп по полю или стрелки на экране. На компьютере — WASD.</p>
     <div class="pad" id="pad"><button class="arrow up" data-dir="up" aria-label="Вверх">▲</button><button class="arrow left" data-dir="left" aria-label="Влево">◀</button><button class="arrow down" data-dir="down" aria-label="Вниз">▼</button><button class="arrow right" data-dir="right" aria-label="Вправо">▶</button></div>
@@ -84,8 +102,8 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const screens = ['home','lobby','countdown','playing','finished'];
-  const app = { ws:null, me:'', room:'', slots:2, players:[], ready:false, phase:'home', last:null, previousRoom:null };
+  const screens = ['choose','home','lobby','countdown','playing','finished'];
+  const app = { ws:null, me:'', room:'', slots:2, players:[], ready:false, phase:'choose', last:null, mode:null };
   const tg=window.Telegram?.WebApp;
   try {tg?.ready();tg?.expand();} catch(_){}
   const getStoredName=()=>{try{return localStorage.getItem('snake_name')||'';}catch(_){return '';}};
@@ -93,7 +111,7 @@
   const suggestedName = tg?.initDataUnsafe?.user?.first_name || getStoredName();
   $('nick').value=suggestedName.slice(0,18);
   const codeFromLink = new URLSearchParams(location.search).get('room') || tg?.initDataUnsafe?.start_param || '';
-  if(/^[A-Z2-9]{6}$/i.test(codeFromLink)) $('code').value=codeFromLink.toUpperCase();
+  if(/^[A-Z2-9]{6}$/i.test(codeFromLink)){ $('code').value=codeFromLink.toUpperCase(); app.mode='multi'; $('choose').classList.remove('active'); $('home').classList.add('active');app.phase='home'; }
   const show=(screen)=>{app.phase=screen;for(const s of screens)$(s).classList.toggle('active',s===screen);};
   const error=msg=>{ $('error').textContent=msg||''; };
   const signal=(good,text)=>{$('signal').classList.toggle('online',good);$('signal').textContent=text;};
@@ -117,6 +135,7 @@
     ws.addEventListener('message',event=>{if(app.ws!==ws)return;let m;try{m=JSON.parse(event.data);}catch(_){return;}onMessage(m);});
   }
   function start(type) {
+    app.mode='multi'; stopSolo();
     const name=$('nick').value.trim().slice(0,18)||'Игрок';saveName(name);
     const payload={type,name};if(type==='create')payload.slots=app.slots;else {payload.code=$('code').value.replace(/[^A-Z2-9]/gi,'').toUpperCase();if(payload.code.length!==6){error('Введи шестизначный код комнаты.');return;}}
     $('create').disabled=true;$('join').disabled=true;
@@ -133,6 +152,7 @@
   }
   const formatClock=sec=>`${String(Math.floor(Math.max(sec,0)/60)).padStart(2,'0')}:${String(Math.max(sec,0)%60).padStart(2,'0')}`;
   function onMessage(m) {
+    if(app.mode!=='multi')return;
     switch(m.type){
       case 'welcome':app.me=m.id;app.room=m.code;break;
       case 'lobby':drawLobby(m);break;
@@ -140,6 +160,7 @@
       case 'match_start':show('playing');$('gamecode').textContent=app.room;break;
       case 'state':app.last=m;draw(m);break;
       case 'result':{
+        $('again').textContent='Ещё один матч';
         const mine=m.winnerId===app.me;
         $('result').textContent=m.winnerId?(mine?'🏆 Победа!':`🏆 Победил ${m.players.find(p=>p.id===m.winnerId)?.name||'соперник'}`):'🤝 Ничья';
         $('resultscores').innerHTML=m.players.sort((a,b)=>b.score-a.score).map(p=>`<div class="member"><i class="dot" style="background:${p.color}"></i><span class="name">${escapeText(p.name)}</span><strong>${p.score} 🍎</strong></div>`).join('');
@@ -159,21 +180,105 @@
     for(const [x,y] of s.food){ctx.fillStyle='#d95c59';ctx.beginPath();ctx.arc(x*tile+15,y*tile+15,10,0,Math.PI*2);ctx.fill();ctx.fillStyle='#8bdb84';ctx.fillRect(x*tile+15,y*tile+2,4,7);}
     for(const snake of s.snakes){for(let i=snake.body.length-1;i>=0;i--){const [x,y]=snake.body[i];ctx.globalAlpha=snake.alive?1:.24;ctx.fillStyle=snake.color;ctx.beginPath();ctx.roundRect(x*tile+2,y*tile+2,26,26,i===0?9:6);ctx.fill();if(i===0&&snake.alive){ctx.fillStyle='#07292a';ctx.beginPath();ctx.arc(x*tile+11,y*tile+11,3,0,Math.PI*2);ctx.arc(x*tile+20,y*tile+11,3,0,Math.PI*2);ctx.fill();}}}
     ctx.globalAlpha=1;
-    $('remaining').textContent=formatClock(s.remaining);
+    $('remaining').textContent=app.mode==='solo'?'∞':formatClock(s.remaining);
     $('scores').innerHTML=s.snakes.map(p=>`<div class="score ${p.alive?'':'dead'}"><i class="dot" style="background:${p.color}"></i><span class="who">${escapeText(p.name)}${p.id===app.me?' (ты)':''}</span><strong>${p.score} 🍎</strong></div>`).join('');
   }
-  const turn=direction=>{if(app.phase==='playing')send({type:'turn',direction});};
+  // Classic single-player mode is deliberately client-side: no rooms or WebSocket.
+  const SOLO_W=26, SOLO_H=20;
+  const solo={timer:null,paused:false,state:null,direction:'right',wanted:'right',queued:false,best:0};
+  const vectors={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
+  const opposite={up:'down',down:'up',left:'right',right:'left'};
+  const loadBest=()=>{try{return Math.max(0,Number(localStorage.getItem('snake_solo_best'))||0);}catch(_){return 0;}};
+  function stopSolo(){if(solo.timer!==null)clearTimeout(solo.timer);solo.timer=null;solo.state=null;solo.paused=false;$('solo-paused').classList.remove('visible');$('solo-tools').classList.remove('visible');}
+  function chooseMode(mode){app.mode=mode;error('');if(mode==='multi'){signal(false,'Не подключено');show('home');}else startSolo();}
+  function newFood(){
+    const occupied=new Set(solo.state.snakes[0].body.map(p=>p.join(',')));
+    const free=[];for(let y=0;y<SOLO_H;y++)for(let x=0;x<SOLO_W;x++)if(!occupied.has(`${x},${y}`))free.push([x,y]);
+    if(!free.length)return null;
+    return free[Math.floor(Math.random()*free.length)];
+  }
+  function startSolo(){
+    if(app.ws){const ws=app.ws;app.ws=null;ws.close();}
+    stopSolo();app.mode='solo';app.me='solo';app.room='';
+    solo.best=loadBest();solo.direction='right';solo.wanted='right';solo.queued=false;
+    solo.state={type:'state',width:SOLO_W,height:SOLO_H,remaining:0,food:[],snakes:[{id:'solo',name:'Ты',color:'#57e6aa',body:[[7,10],[6,10],[5,10]],alive:true,score:0}]};
+    const food=newFood();if(food)solo.state.food=[food];
+    $('solo-best').textContent=solo.best;$('solo-pause').textContent='⏸ Пауза';
+    $('solo-tools').classList.add('visible');$('gamecode').textContent='Один игрок';
+    signal(true,'Одиночная игра');show('playing');draw(solo.state);
+    scheduleSolo();
+  }
+  function scheduleSolo(){
+    if(solo.timer!==null)clearTimeout(solo.timer);
+    solo.timer=null;
+    if(app.mode==='solo'&&app.phase==='playing'&&!solo.paused&&solo.state){
+      const delay=Math.max(105,180-solo.state.snakes[0].score*5);
+      solo.timer=setTimeout(soloTick,delay);
+    }
+  }
+  function soloTick(){
+    solo.timer=null;
+    if(app.mode!=='solo'||app.phase!=='playing'||solo.paused||!solo.state)return;
+    const s=solo.state, player=s.snakes[0];
+    if(solo.wanted!==opposite[solo.direction])solo.direction=solo.wanted;
+    solo.queued=false;
+    const [dx,dy]=vectors[solo.direction],head=[player.body[0][0]+dx,player.body[0][1]+dy];
+    const eating=s.food.some(p=>p[0]===head[0]&&p[1]===head[1]);
+    const bodyCheck=eating?player.body:player.body.slice(0,-1);
+    if(head[0]<0||head[0]>=SOLO_W||head[1]<0||head[1]>=SOLO_H||bodyCheck.some(p=>p[0]===head[0]&&p[1]===head[1])){
+      player.alive=false;draw(s);
+      $('result').textContent=`🍎 Набрано: ${player.score}`;
+      $('resultscores').innerHTML=`<div class="member"><span class="name">Лучший результат</span><strong>${solo.best} 🍎</strong></div>`;
+      $('again').textContent='↻ Сыграть ещё';$('solo-tools').classList.remove('visible');show('finished');return;
+    }
+    player.body.unshift(head);
+    if(eating){
+      player.score++;
+      if(player.score>solo.best){solo.best=player.score;try{localStorage.setItem('snake_solo_best',String(solo.best));}catch(_){}}
+      $('solo-best').textContent=solo.best;
+      if(player.body.length===SOLO_W*SOLO_H){
+        draw(s);$('result').textContent='🏆 Всё поле заполнено!';$('resultscores').innerHTML=`<div class="member"><span class="name">Твой рекорд</span><strong>${solo.best} 🍎</strong></div>`;
+        $('again').textContent='↻ Сыграть ещё';$('solo-tools').classList.remove('visible');show('finished');return;
+      }
+      const fruit=newFood();s.food=fruit?[fruit]:[];
+    }else player.body.pop();
+    draw(s);scheduleSolo();
+  }
+  function pauseSolo(){
+    if(app.mode!=='solo'||app.phase!=='playing'||!solo.state)return;
+    solo.paused=!solo.paused;
+    $('solo-paused').classList.toggle('visible',solo.paused);
+    $('solo-pause').textContent=solo.paused?'▶ Продолжить':'⏸ Пауза';
+    if(solo.paused){if(solo.timer!==null)clearTimeout(solo.timer);solo.timer=null;}else scheduleSolo();
+  }
+  const turn=direction=>{
+    if(app.phase!=='playing')return;
+    if(app.mode==='solo'){
+      if(!solo.paused&&!solo.queued&&vectors[direction]&&direction!==opposite[solo.direction]){solo.wanted=direction;solo.queued=true;}
+    }else send({type:'turn',direction});
+  };
   document.querySelectorAll('#modes button').forEach(b=>b.addEventListener('click',()=>{app.slots=Number(b.dataset.slots);document.querySelectorAll('#modes button').forEach(x=>x.classList.toggle('selected',x===b));}));
+  $('solo-choice').addEventListener('click',()=>chooseMode('solo'));
+  $('multi-choice').addEventListener('click',()=>chooseMode('multi'));
+  $('back-modes').addEventListener('click',()=>{app.mode=null;show('choose');error('');});
+  $('solo-pause').addEventListener('click',pauseSolo);
+  $('solo-exit').addEventListener('click',()=>{stopSolo();app.mode=null;signal(false,'Не подключено');show('choose');});
   $('create').addEventListener('click',()=>start('create'));$('join').addEventListener('click',()=>start('join'));
   $('code').addEventListener('keydown',e=>{if(e.key==='Enter')start('join');});
   $('ready').addEventListener('click',()=>send({type:'ready',value:!app.ready}));
-  const leave=()=>{if(app.ws){const sock=app.ws;app.ws=null;sock.close();}app.me='';app.room='';show('home');signal(false,'Не подключено');error('');};
+  const leave=()=>{stopSolo();if(app.ws){const sock=app.ws;app.ws=null;sock.close();}app.me='';app.room='';app.mode=null;show('choose');signal(false,'Не подключено');error('');};
   $('leave').addEventListener('click',leave);$('quit').addEventListener('click',leave);
-  $('again').addEventListener('click',()=>send({type:'again'}));
+  $('again').addEventListener('click',()=>{if(app.mode==='solo')startSolo();else send({type:'again'});});
   $('share').addEventListener('click',async()=>{const url=link();const text=`Заходи в Змейку! Комната ${app.room}\n${url}`;try{if(navigator.share)await navigator.share({title:'Змейка с друзьями',text,url});else{await navigator.clipboard.writeText(text);$('share').textContent='✓ Приглашение скопировано';setTimeout(()=>$('share').textContent='🔗 Поделиться приглашением',1500);}}catch(e){if(e.name!=='AbortError')error('Ссылка: '+url);}});
   document.querySelectorAll('[data-dir]').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();turn(b.dataset.dir);}));
   const keys={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',a:'left',s:'down',d:'right',W:'up',A:'left',S:'down',D:'right'};
-  window.addEventListener('keydown',e=>{const dir=keys[e.key];if(dir&&app.phase==='playing'){e.preventDefault();turn(dir);}});
+  window.addEventListener('keydown',e=>{
+    if((e.key===' '||e.key==='Escape')&&app.mode==='solo'&&app.phase==='playing'){
+      e.preventDefault();pauseSolo();return;
+    }
+    const dir=keys[e.key];if(dir&&app.phase==='playing'){e.preventDefault();turn(dir);}
+  });
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&app.mode==='solo'&&app.phase==='playing'&&!solo.paused)pauseSolo();});
   let touch=null;canvas.addEventListener('touchstart',e=>{if(e.touches.length)touch={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});
   canvas.addEventListener('touchend',e=>{if(!touch||!e.changedTouches.length)return;const dx=e.changedTouches[0].clientX-touch.x,dy=e.changedTouches[0].clientY-touch.y;touch=null;if(Math.max(Math.abs(dx),Math.abs(dy))<22)return;turn(Math.abs(dx)>Math.abs(dy)?dx>0?'right':'left':dy>0?'down':'up');},{passive:true});
 })();
