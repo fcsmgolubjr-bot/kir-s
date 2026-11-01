@@ -89,30 +89,49 @@ def game_buttons() -> dict:
         [{"text": "⚔️ Мультиплеер (2–4)", "web_app": {"url": MULTI_URL}}],
     ]}
 
+async def register_telegram_bot() -> None:
+    """Configure the Telegram bot in the background, never delaying the HTTP port."""
+    for attempt in range(3):
+        try:
+            await asyncio.wait_for(
+                asyncio.to_thread(telegram_api, "setWebhook", {
+                    "url": PUBLIC_URL + "/telegram/webhook",
+                    "secret_token": BOT_WEBHOOK_SECRET,
+                    "allowed_updates": ["message"],
+                }),
+                timeout=15,
+            )
+            await asyncio.wait_for(
+                asyncio.to_thread(telegram_api, "setChatMenuButton", {
+                    "menu_button": {
+                        "type": "web_app", "text": "🎮 Режимы",
+                        "web_app": {"url": PUBLIC_URL},
+                    }
+                }),
+                timeout=15,
+            )
+            app.state.telegram_ready = True
+            logger.info("Telegram webhook and bot menu configured")
+            return
+        except Exception as exc:
+            # Do not log the API URL, because it contains the secret bot token.
+            logger.warning(
+                "Telegram setup attempt %d failed (%s); web server remains available",
+                attempt + 1, type(exc).__name__,
+            )
+            if attempt < 2:
+                await asyncio.sleep(20 * (attempt + 1))
+    logger.error("Telegram setup is unavailable; games are still accessible by URL")
+
+
 @app.on_event("startup")
 async def connect_telegram_bot() -> None:
+    app.state.telegram_ready = False
     if not BOT_TOKEN:
-        logger.info("Bot token not configured; /start buttons remain disabled")
+        logger.info("BOT_TOKEN is absent; /start buttons are not yet enabled")
         return
-    try:
-        await asyncio.to_thread(
-            telegram_api, "setWebhook", {
-                "url": PUBLIC_URL + "/telegram/webhook",
-                "secret_token": BOT_WEBHOOK_SECRET,
-                "allowed_updates": ["message"],
-            }
-        )
-        await asyncio.to_thread(
-            telegram_api, "setChatMenuButton", {
-                "menu_button": {
-                    "type": "web_app", "text": "🎮 Режимы",
-                    "web_app": {"url": PUBLIC_URL},
-                }
-            }
-        )
-        logger.info("Telegram webhook and the single BotFather menu button configured")
-    except Exception:
-        logger.exception("Could not configure Telegram bot webhook")
+    # Waiting for external Telegram API during startup blocked Render's port scan.
+    app.state.telegram_setup_task = asyncio.create_task(register_telegram_bot())
 
 @app.post("/telegram/webhook")
 async def telegram_webhook(request: Request):
@@ -155,7 +174,7 @@ async def telegram_webhook(request: Request):
 
 @app.get("/health")
 async def health():
-    return JSONResponse({"status": "ok", "game": "snake", "rooms": len(rooms)})
+    return JSONResponse({"status": "ok", "game": "snake", "rooms": len(rooms), "telegram_ready": getattr(app.state, "telegram_ready", False)})
 
 
 def clean_name(raw) -> str:
