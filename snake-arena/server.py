@@ -9,6 +9,8 @@ import asyncio
 import json
 import logging
 import hmac
+import hashlib
+from urllib.parse import parse_qsl
 import os
 import urllib.request
 import re
@@ -19,12 +21,14 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 
 from game import COLORS, Match, TICK_SECONDS
 
 logger = logging.getLogger("snake")
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+app.add_middleware(CORSMiddleware, allow_origins=["https://fcsmgolubjr-bot.github.io"], allow_methods=["POST"], allow_headers=["Content-Type"])
 ROOT = Path(__file__).parent / "static"
 LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 ROOM_TTL = 30 * 60
@@ -183,6 +187,100 @@ async def telegram_webhook(request: Request):
             except Exception:
                 logger.exception("Could not send Telegram game selection buttons")
     return {"ok": True}
+
+
+
+# The invitation is a Telegram message with a button, not a visible long URL.
+# Telegram only accepts prepared messages for the authenticated Mini App user.
+def validate_webapp_init_data(init_data: str) -> Optional[int]:
+    if not BOT_TOKEN or not isinstance(init_data, str) or len(init_data) > 8192:
+        return None
+    try:
+        pairs = parse_qsl(init_data, keep_blank_values=True, strict_parsing=True)
+        if len(pairs) != len({key for key, _ in pairs}):
+            return None
+        values = dict(pairs)
+        provided = values.get("hash", "")
+        if len(provided) != 64:
+            return None
+        check = "\n".join(
+            f"{key}={value}" for key, value in sorted(pairs)
+            if key not in ("hash", "signature")
+        )
+        secret = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
+        expected = hmac.new(secret, check.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(provided, expected):
+            return None
+        auth_date = int(values.get("auth_date", "0"))
+        if auth_date > time.time() + 60 or time.time() - auth_date > 86400:
+            return None
+        user_id = int(json.loads(values["user"])["id"])
+        return user_id if user_id > 0 else None
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError):
+        return None
+
+
+# Simple per-user throttle: protect the Telegram API from repeated taps.
+share_attempts: dict[int, list[float]] = {}
+
+
+@app.post("/api/prepared-invite")
+async def prepared_invite(request: Request):
+    if not BOT_TOKEN:
+        return JSONResponse({"error": "Telegram bot is not connected"}, status_code=503)
+    raw = await request.body()
+    if len(raw) > 9000:
+        return JSONResponse({"error": "Invalid request"}, status_code=413)
+    try:
+        payload = json.loads(raw)
+        if not isinstance(payload, dict):
+            raise ValueError()
+        init_data = payload.get("initData", "")
+        code = str(payload.get("code", "")).upper()
+    except (ValueError, TypeError):
+        return JSONResponse({"error": "Invalid request"}, status_code=400)
+    user_id = validate_webapp_init_data(init_data)
+    if user_id is None:
+        return JSONResponse({"error": "Open the game inside Telegram"}, status_code=401)
+    if not (len(code) == 6 and all(ch in LETTERS for ch in code)):
+        return JSONResponse({"error": "Invalid room code"}, status_code=400)
+    room = rooms.get(code)
+    if room is None or room.phase != "lobby" or len(room.players) >= room.slots:
+        return JSONResponse({"error": "This room is no longer accepting players"}, status_code=404)
+    now = time.monotonic()
+    attempts = [t for t in share_attempts.get(user_id, []) if now - t < 60]
+    if len(attempts) >= 8:
+        return JSONResponse({"error": "Too many invitations"}, status_code=429)
+    attempts.append(now)
+    share_attempts[user_id] = attempts
+    if len(share_attempts) > 1000:
+        share_attempts.clear()
+    direct_url = "https://t.me/snake_arcade_play_bot?start=join_" + code
+    result = {
+        "type": "article",
+        "id": secrets.token_hex(8),
+        "title": "Приглашение в Snake Arena",
+        "input_message_content": {
+            "message_text": "🐍 Snake Arena\\nЗаходи сыграть со мной!\\nКомната: " + code,
+        },
+        "reply_markup": {
+            "inline_keyboard": [[{"text": "🎮 Войти в комнату", "url": direct_url}]]
+        },
+    }
+    try:
+        response = await asyncio.to_thread(
+            telegram_api, "savePreparedInlineMessage", {
+                "user_id": user_id, "result": result,
+                "allow_user_chats": True, "allow_group_chats": True,
+            }
+        )
+        prepared_id = response.get("result", {}).get("id")
+        if not isinstance(prepared_id, str) or not prepared_id:
+            raise ValueError("Missing prepared message id")
+    except Exception as exc:
+        logger.warning("Could not prepare an invite (%s)", type(exc).__name__)
+        return JSONResponse({"error": "Unable to prepare Telegram invitation"}, status_code=502)
+    return JSONResponse({"id": prepared_id})
 
 
 @app.get("/health")
