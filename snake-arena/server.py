@@ -161,11 +161,23 @@ async def telegram_webhook(request: Request):
             and command and command[0].split("@", 1)[0] in ("/start", "/menu", "/help")
         ):
             try:
+                # Short invite: t.me/snake_arcade_play_bot?start=join_ABCDEF
+                arg = command[1].strip() if len(command) > 1 else ""
+                invite_code = clean_code(arg[5:]) if arg.lower().startswith("join_") else ""
+                if invite_code and len(invite_code) == 6:
+                    message_text = f"🐍 Приглашение в комнату {invite_code}"
+                    reply_buttons = {"inline_keyboard": [[{
+                        "text": "Войти в комнату",
+                        "web_app": {"url": STATIC_URL + "?room=" + invite_code},
+                    }]]}
+                else:
+                    message_text = "🐍 Выбери режим игры:"
+                    reply_buttons = game_buttons()
                 await asyncio.to_thread(
                     telegram_api, "sendMessage", {
                         "chat_id": chat["id"],
-                        "text": "🐍 Выбери, как играть в Змейку:",
-                        "reply_markup": game_buttons(),
+                        "text": message_text,
+                        "reply_markup": reply_buttons,
                     }
                 )
             except Exception:
