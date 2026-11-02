@@ -106,12 +106,60 @@ $('create').onclick=()=>connect('create','');$('join').onclick=()=>{const code=c
 $('code').onkeydown=e=>{if(e.key==='Enter')$('join').click()};
 function connect(kind,code){stopNetwork();stopSolo();app.mode='multi';app.intent={kind,code};$('connecting-title').textContent=kind==='join'?'Входим в комнату':'Создаём комнату';$('connecting-status').textContent='Подключаемся…';screen('connecting');let seq=app.connectSeq,started=Date.now();function retry(){if(seq!==app.connectSeq)return;if(Date.now()-started>115000){$('connecting-status').textContent='Нет ответа от сервера. Попробуй снова.';return}if(Date.now()-started>6000)$('connecting-status').textContent='Сервер просыпается. Бесплатный Render может запускаться около минуты.';let socket;try{socket=new WebSocket(SERVER)}catch(e){setTimeout(retry,4000);return}app.ws=socket;let joined=false;const watchdog=setTimeout(()=>{if(seq===app.connectSeq&&!joined){try{socket.close()}catch(e){}}},18000);socket.onopen=()=>{if(seq!==app.connectSeq)return;socket.send(JSON.stringify({type:kind,name:nick(),slots:app.slots,code}))};socket.onmessage=e=>{if(seq!==app.connectSeq)return;let p;try{p=JSON.parse(e.data)}catch(_){return}if(p.type==='welcome')joined=true;handle(p)};socket.onerror=()=>{};socket.onclose=()=>{clearTimeout(watchdog);if(seq!==app.connectSeq)return;if(app.screen==='connecting'&&!joined)setTimeout(retry,3700);else if(app.screen==='lobby'||app.screen==='playing'||app.screen==='countdown'){$('connecting-status').textContent='Связь потеряна. Вернись в меню и зайди снова.';screen('connecting')}}};retry()}
 function send(packet){if(app.ws?.readyState===WebSocket.OPEN)app.ws.send(JSON.stringify(packet))}
-function handle(m){if(m.type==='welcome'){app.me=m.id;app.room=m.code;return}if(m.type==='error'){$('connecting-status').textContent=m.message||'Ошибка подключения';if(app.screen!=='connecting'){$('lobby-status').textContent=m.message||'Ошибка'}return}if(m.type==='lobby'){app.players=m.players||[];app.room=m.code;app.phase=m.phase;app.slots=m.slots;app.isReady=!!app.players.find(p=>p.id===app.me)?.ready;if(m.phase==='lobby'){lobby();screen('lobby')}return}if(m.type==='countdown'){screen('countdown');$('count').textContent=m.seconds;return}if(m.type==='match_start'){app.state=null;app.prevState=null;screen('playing');$('pause').style.opacity='.35';return}if(m.type==='state'){const now=performance.now();app.prevState=visualAt(now)||app.state;app.state=m;app.animAt=now;app.animMs=TICK;if(app.screen==='countdown')screen('playing');hud(m);startRender();return}if(m.type==='result'){cancelAnimationFrame(app.frame);app.frame=0;const winner=m.players?.find(x=>x.id===m.winnerId);$('result-title').textContent=m.winnerId===app.me?'Победа!':winner?'Победил '+winner.name:'Ничья';$('result-score').textContent='🍎 '+(m.players?.find(x=>x.id===app.me)?.score??0);screen('finished');return}}
+function handle(m){if(m.type==='welcome'){app.me=m.id;app.room=m.code;return}if(m.type==='error'){$('connecting-status').textContent=m.message||'Ошибка подключения';if(app.screen!=='connecting'){$('lobby-status').textContent=m.message||'Ошибка'}return}if(m.type==='lobby'){app.players=m.players||[];app.room=m.code;app.phase=m.phase;app.slots=m.slots;app.isReady=!!app.players.find(p=>p.id===app.me)?.ready;if(m.phase==='lobby'){lobby();screen('lobby');prepareInvite(app.room).catch(()=>{})}return}if(m.type==='countdown'){screen('countdown');$('count').textContent=m.seconds;return}if(m.type==='match_start'){app.state=null;app.prevState=null;screen('playing');$('pause').style.opacity='.35';return}if(m.type==='state'){const now=performance.now();app.prevState=visualAt(now)||app.state;app.state=m;app.animAt=now;app.animMs=TICK;if(app.screen==='countdown')screen('playing');hud(m);startRender();return}if(m.type==='result'){cancelAnimationFrame(app.frame);app.frame=0;const winner=m.players?.find(x=>x.id===m.winnerId);$('result-title').textContent=m.winnerId===app.me?'Победа!':winner?'Победил '+winner.name:'Ничья';$('result-score').textContent='🍎 '+(m.players?.find(x=>x.id===app.me)?.score??0);screen('finished');return}}
 function lobby(){$('room-code').textContent=app.room;$('members-count').textContent=app.players.length+' / '+app.slots;$('ready').textContent=app.isReady?'Готов ✓':'Готов!';$('lobby-status').textContent=app.players.length<app.slots?'Пригласи друзей':'Все на месте? Нажми «Готов!»';const box=$('members');box.replaceChildren();for(const [i,p] of app.players.entries()){const el=document.createElement('div');el.className='member';const dot=document.createElement('i');dot.className='dot';dot.style.setProperty('--dot',colors[i]);const label=document.createElement('span');label.className='who';label.textContent=p.name;const ready=document.createElement('span');ready.className='ready';ready.textContent=p.ready?'✓':'…';el.append(dot,label,ready);box.append(el)}}
 $('ready').onclick=()=>send({type:'ready',value:!app.isReady});$('again').onclick=()=>{if(app.mode==='solo')startSolo();else send({type:'again'})};
-// Short Telegram deep link. The bot answers with a one-tap button to the exact room.
+// Native Telegram share: compact message with a real join button, no long URL.
+const INVITE_API='https://snake-arena-telegram.onrender.com/api/prepared-invite';
+const invitation={code:'',id:'',pending:null};
 function inviteUrl(){return 'https://t.me/'+BOT+'?start=join_'+app.room}
-$('invite').onclick=async()=>{const link=inviteUrl();const share='https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent('🐍 Залетай в мою комнату Snake Arena!');try{if(tg?.openTelegramLink){tg.openTelegramLink(share);return}if(navigator.share){await navigator.share({title:'Snake Arena',text:'Заходи играть!',url:link});return}await navigator.clipboard.writeText('🐍 Snake Arena — вход в комнату\n'+link);$('lobby-status').textContent='Приглашение скопировано'}catch(e){$('lobby-status').textContent='Ссылка: '+link}};
+async function prepareInvite(code){
+  if(!tg?.shareMessage||!tg?.initData||!code) return null;
+  if(invitation.code===code&&invitation.id)return invitation.id;
+  if(invitation.code===code&&invitation.pending)return invitation.pending;
+  invitation.code=code;invitation.id='';
+  const promise=(async()=>{
+    const response=await fetch(INVITE_API,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code,initData:tg.initData})
+    });
+    if(!response.ok)throw new Error('Invite API '+response.status);
+    const data=await response.json();
+    if(typeof data.id!=='string'||!data.id)throw new Error('Bad invite response');
+    if(invitation.code===code)invitation.id=data.id;
+    return data.id;
+  })();
+  invitation.pending=promise;
+  try{return await promise}finally{if(invitation.pending===promise)invitation.pending=null}
+}
+$('invite').onclick=async()=>{
+  const code=app.room,link=inviteUrl();
+  $('lobby-status').textContent='Готовим приглашение…';
+  if(tg?.shareMessage&&tg?.initData){
+    try{
+      const prepared=await prepareInvite(code);
+      if(prepared&&code===app.room){
+        tg.shareMessage(prepared,ok=>{$('lobby-status').textContent=ok?'Приглашение отправлено':'Можно пригласить ещё одного друга'});
+        return;
+      }
+    }catch(_){}
+  }
+  // Older Telegram clients and ordinary browsers use the short link.
+  try{
+    if(tg?.openTelegramLink){
+      tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent(link));
+      $('lobby-status').textContent='Выбери чат для приглашения';
+      return;
+    }
+    if(navigator.share){
+      await navigator.share({title:'Snake Arena',text:'Заходи играть!',url:link});
+      $('lobby-status').textContent='Приглашение отправлено';
+      return;
+    }
+    await navigator.clipboard.writeText(link);
+    $('lobby-status').textContent='Короткая ссылка скопирована';
+  }catch(_){$('lobby-status').textContent='Ссылка: '+link}
+};
 function hud(s){const mine=s.snakes.find(p=>p.id===app.me)||s.snakes[0];$('score-hud').textContent='🏆 '+(mine?.score||0);$('time-hud').textContent=app.mode==='solo'?'🍎 '+(mine?.score||0):'⏳ '+Math.max(0,s.remaining)+'с';const ls=$('player-list');ls.replaceChildren();if(app.mode==='multi')for(const p of s.snakes){const el=document.createElement('span');el.className='player-chip';el.style.setProperty('--player-color',p.color);el.textContent=p.name+' '+p.score;el.style.opacity=p.alive?'1':'.5';ls.append(el)}}
 const canvas=$('board'),ctx=canvas.getContext('2d');const W=600;
 // Moving snake art uses a single rounded organic stroke, not a chain of rectangular tiles.
