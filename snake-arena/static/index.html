@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
   <meta name="theme-color" content="#f7f3e9">
-  <title>Snake Arena — одиночная игра и мультиплеер</title>
+  <title>Змейка — игра в Telegram</title>
   <style>
     :root{--bg:#071a1c;--panel:#113034;--panel2:#164047;--line:#28575a;--text:#e7fcf4;--muted:#96b9b6;--lime:#60f2b3;--gold:#ffd571}
     *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text)}
@@ -105,11 +105,87 @@ canvas{background:#e6efd5;border-radius:12px;image-rendering:auto;aspect-ratio:2
 @media(max-width:410px){#choose .arcade-head{min-height:230px}#choose .hero-art{width:172px;height:188px;top:68px}#choose .hero-title{font-size:clamp(36px,10vw,49px)}}
 @media(max-width:360px){#choose .hero-art{width:145px;height:163px;top:83px}#choose .choice{padding-left:78px}#choose .choice .symbol{width:53px;height:53px;left:12px}}
 
+
+/* Paper & Play edition. A small illustrated game, not a dashboard. */
+:root{--bg:#f4efe3;--ink:#333e2e;--olive:#3e583f;--pale:#e3e6d2;--clay:#b86d52;--sand:#e7d9bd;--paper:#f4efe3;--muted:#7f8174}
+html,body{background:var(--bg);color:var(--ink)}
+body{margin:0;background:#f4efe3;font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif}
+.shell{width:min(100%,575px);max-width:575px;padding:17px 20px 38px;gap:0;min-height:100dvh}
+.top{padding:3px 2px 14px;border-bottom:1px solid #c8c3ad;min-height:51px;margin-bottom:13px}
+.logo{font:700 23px/1 Georgia,'Times New Roman',serif;letter-spacing:-.06em;color:#3f5138}
+.logo-dot{color:#b46f51}
+.signal{background:transparent;border:0;color:#747a67;font-size:11px;letter-spacing:0;font-weight:600;padding:4px 0}
+.signal:before{display:none}.signal.online:before{display:none}
+.top:has(+ #choose.active) .signal{display:none}
+.screen{animation:page-enter .28s ease-out both}
+@keyframes page-enter{from{opacity:.5;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+#choose.card,#home.card,#lobby.card,#countdown.card,#finished.card{background:transparent;border:0;box-shadow:none;border-radius:0;padding:0;overflow:visible}
+#choose .arcade-head{position:relative;min-height:350px;padding:33px 0 0;background:transparent;overflow:hidden}
+#choose .arcade-head:before{content:'';position:absolute;right:-12px;top:32px;width:300px;height:300px;border-radius:47% 53% 40% 60%/55% 39% 61% 45%;background:#e5e5ce;transform:rotate(-17deg)}
+#choose .arcade-head:after{content:'';position:absolute;right:9px;bottom:12px;width:220px;height:25px;border-radius:50%;background:#d1c4a6;opacity:.55;filter:blur(9px)}
+#choose .hero-title{position:relative;z-index:3;transform:none;text-shadow:none;font:normal clamp(54px,13vw,76px)/.97 Georgia,'Times New Roman',serif;letter-spacing:-.078em;color:#344932;max-width:100%}
+#choose .hero-title strong{display:block;font-weight:normal;color:inherit!important;text-shadow:none;-webkit-text-stroke:0}
+#choose .hero-title strong:last-child{margin-left:26px;font-style:italic;color:#9b674b!important}
+#choose .hero-art{top:101px;right:2px;width:255px;height:252px;z-index:2;opacity:1;filter:drop-shadow(0 7px 3px #364b292b);transform:rotate(-5deg)}
+#choose .mode-container{padding:2px 0 0;background:transparent}
+#choose .choices{display:flex;flex-direction:column;gap:11px;margin:6px 0 0}
+#choose .choice,#choose .choice.multiplayer{position:relative;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;text-align:left;padding:17px 23px;min-height:84px;border:0;box-shadow:none;border-radius:50px;background:#435a40;color:#f7f1e5;transform:none;gap:15px}
+#choose .choice.multiplayer{background:#e4d2b5;color:#344331}
+#choose .choice .symbol{position:static;transform:none;display:inline-grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#637760;color:#fdf5e7;box-shadow:none;font:italic 20px Georgia,serif;flex:none}
+#choose .choice.multiplayer .symbol{background:#d0b48c;color:#4c4a3c}
+#choose .choice strong{color:#f4f0e6;font-size:20px;letter-spacing:-.03em;font-weight:650;line-height:1.2;flex:1}
+#choose .choice.multiplayer strong{color:#344331}
+#choose .choice small{color:#d7e2d0;font-size:12px;display:none}
+#choose .choice.multiplayer small{color:#666856}
+#choose .choice:after{content:'→';font:24px Georgia,serif;color:inherit;opacity:.83}
+#choose .choice:active,#choose .choice.multiplayer:active{transform:scale(.983);box-shadow:none}
+#home h1,#lobby h2,#countdown h2,#finished h2{font:normal 39px/1.09 Georgia,serif;letter-spacing:-.06em;margin:9px 0 23px;color:#344932}
+#home,#lobby,#finished{padding:12px 0 18px!important}
+label{font-size:13px;letter-spacing:0;color:#545b4a;font-weight:600;margin:15px 0 7px}
+input{background:#fffbf3;border:1px solid #c9c0aa;color:#343f30;border-radius:17px;padding:15px 16px;font-weight:550;box-shadow:none}
+.mode button{background:transparent;border:1px solid #c6bda7;border-radius:100px;color:#43503d;font-weight:650;font-size:14px;padding:13px 4px}
+.mode button.selected{background:#485f44;border-color:#485f44;color:#fff8ed;box-shadow:none}
+.btn{border:0;background:#405c42;border-radius:40px;box-shadow:none;color:#fff8ed;font-size:15px;font-weight:650;min-height:53px;letter-spacing:0}
+.btn.alt{background:#d9c6aa;color:#374635;border:0;box-shadow:none}.btn.ghost{background:transparent;border:1px solid #c6bea8;box-shadow:none;color:#465742}
+.btn:active{transform:scale(.986)}
+.split{color:#777d6d;font-size:12px;margin:18px 0 12px}.split:before,.split:after{background:#cbc4b5}
+.joinrow input{background:#fffaf3}.joinrow button{width:110px;min-width:110px}
+#lobby .subtitle{font-size:15px;color:#717869}
+.roomcode{font:normal 35px Georgia,serif;letter-spacing:.19em;background:#e3e7d4;border:0;border-radius:16px;color:#435a40;padding:19px 10px}
+.member{background:transparent;border:0;border-bottom:1px solid #c8c2ae;border-radius:0;padding:12px 3px;color:#344a39}
+.member .state{color:#667760}
+#playing{padding-top:5px}
+.boardhead{border:0;background:transparent;border-radius:0;padding:0;margin:3px 0 10px;display:flex;align-items:baseline}
+.boardhead h2{font:normal 32px/1 Georgia,serif;letter-spacing:-.06em;color:#3a513a}
+.boardhead .meta{font:600 15px ui-sans-serif,system-ui,sans-serif;color:#7b735e}
+.board-shell{margin:10px 0 8px;background:#e4e7cd;border:4px solid #b6aa89;box-shadow:inset 0 0 0 1px #f8f4e9;border-radius:27px;padding:4px}
+canvas{background:#e4e7cd;border-radius:20px;aspect-ratio:20 / 16;image-rendering:auto}
+.solo-tools{margin:6px 0 10px}.solo-tools button{border:0;background:transparent;border-radius:0;color:#536648;text-decoration:underline;text-underline-offset:3px;padding:7px 0;font-size:13px}
+.solo-tools span{color:#626f58;font-size:12px}
+.scores{display:flex;flex-wrap:wrap;gap:8px;margin:13px 0 4px}
+.score{border:0;background:#e9e6d9;border-radius:99px;padding:8px 12px;color:#414c39;min-width:98px;flex:1;font-size:12px;gap:6px}
+.score strong{color:#915d3b}
+.pad{margin:17px auto 0;grid-template-columns:repeat(3,70px);grid-template-rows:repeat(2,58px);gap:9px}
+.arrow{background:#e3dcc7;color:#44563a;border:0;box-shadow:none;border-radius:100px;font:30px ui-sans-serif,sans-serif;touch-action:none;user-select:none}
+.arrow:active{background:#d2c7ab;transform:scale(.95);box-shadow:none}
+.solo-paused{color:#795d3e;background:#e8ddca;border-radius:20px;padding:8px}
+#finished{text-align:center;min-height:280px;padding-top:25px!important}
+#finished .finish-heading{font:normal 42px Georgia,serif;margin:16px 0 6px}
+#finished .result{font:normal 25px Georgia,serif;color:#7c624b;margin:14px 0 25px}
+#finished .members{text-align:left;margin:12px 0 30px}
+#finished .actions{max-width:420px;margin:auto}
+.error{color:#a04436;font-size:13px;margin:14px 0;min-height:12px}
+.bigcount{font:normal 92px Georgia,serif;color:#496348}
+@media(min-width:660px){.shell{max-width:640px;padding:20px 28px}.pad{grid-template-columns:repeat(3,79px);grid-template-rows:repeat(2,67px)}}
+@media(max-width:420px){.shell{padding:11px 18px 22px}#choose .arcade-head{min-height:305px;padding-top:28px}#choose .hero-title{font-size:57px}#choose .hero-art{width:217px;height:239px;top:82px;right:0}#choose .arcade-head:before{width:260px;height:255px;right:-12px}#choose .choice,#choose .choice.multiplayer{padding:13px 18px;min-height:75px}#choose .choice strong{font-size:18px}.board-shell{margin-top:9px}.pad{grid-template-columns:repeat(3,67px);grid-template-rows:repeat(2,56px)}}
+@media(max-width:345px){#choose .hero-title{font-size:50px}#choose .hero-art{right:-12px;width:193px}#choose .choice strong{font-size:17px}.pad{grid-template-columns:repeat(3,59px)}}
+@media(prefers-reduced-motion:reduce){.screen{animation:none}}
+
 </style>
 </head>
 <body>
 <div class="shell">
-  <div class="top"><div class="logo"><span class="logo-mark">ϟ</span><span>SNAKE <b>ARENA</b></span></div><span id="signal" class="signal">Не подключено</span></div>
+  <div class="top"><div class="logo">Змейка<span class="logo-dot">.</span></div><span id="signal" class="signal" aria-live="polite">Готово</span></div>
   <section id="choose" class="screen active card">
     <div class="arcade-head">
       
@@ -136,8 +212,8 @@ canvas{background:#e6efd5;border-radius:12px;image-rendering:auto;aspect-ratio:2
     </div>
     <div class="mode-container">
       <div class="choices">
-        <button class="choice" id="solo-choice" type="button"><span class="symbol" aria-hidden="true">🍏</span><span class="choice-nr"></span><strong>Играть одному</strong><small>Рекорд и практика</small><span class="choice-chevron">↗</span></button>
-        <button class="choice multiplayer" id="multi-choice" type="button"><span class="symbol" aria-hidden="true">⚡</span><span class="choice-nr"></span><strong>Играть с друзьями</strong><small>От 2 до 4 игроков</small><span class="choice-chevron">↗</span></button>
+        <button class="choice" id="solo-choice" type="button"><span class="symbol" aria-hidden="true">01</span><span class="choice-nr"></span><strong>Один игрок</strong><small>На рекорд</small><span class="choice-chevron">↗</span></button>
+        <button class="choice multiplayer" id="multi-choice" type="button"><span class="symbol" aria-hidden="true">02</span><span class="choice-nr"></span><strong>С друзьями</strong><small>2–4 игрока</small><span class="choice-chevron">↗</span></button>
       </div>
     </div>
   </section>
@@ -162,15 +238,15 @@ canvas{background:#e6efd5;border-radius:12px;image-rendering:auto;aspect-ratio:2
   </section>
   <section id="countdown" class="screen card"><h2 style="text-align:center">Старт</h2><div class="bigcount" id="count">3</div></section>
   <section id="playing" class="screen">
-    <div class="boardhead"><h2>Арена</h2><div class="meta">⏱ <span id="remaining">03:00</span> · <span id="gamecode"></span></div></div>
-    <div class="solo-tools" id="solo-tools"><button id="solo-pause" type="button">⏸ Пауза</button><span>Рекорд: <b id="solo-best">0</b> 🍎</span><button id="solo-exit" type="button">✕ Выйти</button></div>
+    <div class="boardhead"><h2>Змейка</h2><div class="meta"><span id="remaining">01:30</span><span id="gamecode"></span></div></div>
+    <div class="solo-tools" id="solo-tools"><button id="solo-pause" type="button">Пауза</button><span>Рекорд <b id="solo-best">0</b></span><button id="solo-exit" type="button">Выйти</button></div>
     <div class="board-shell"><canvas id="board" width="600" height="480" aria-label="Игровое поле с цветными змейками"></canvas></div>
-    <div class="solo-paused" id="solo-paused">⏸ Пауза — нажми «Продолжить»</div>
+    <div class="solo-paused" id="solo-paused">Пауза</div>
     <div id="scores" class="scores"></div>
 
-    <div class="pad" id="pad"><button class="arrow up" data-dir="up" aria-label="Вверх">▲</button><button class="arrow left" data-dir="left" aria-label="Влево">◀</button><button class="arrow down" data-dir="down" aria-label="Вниз">▼</button><button class="arrow right" data-dir="right" aria-label="Вправо">▶</button></div>
+    <div class="pad" id="pad"><button class="arrow up" data-dir="up" aria-label="Вверх">↑</button><button class="arrow left" data-dir="left" aria-label="Влево">←</button><button class="arrow down" data-dir="down" aria-label="Вниз">↓</button><button class="arrow right" data-dir="right" aria-label="Вправо">→</button></div>
   </section>
-  <section id="finished" class="screen card"><h2 style="text-align:center">Итоги</h2><div id="result" class="result"></div><div id="resultscores" class="members"></div><div class="actions"><button id="again" class="btn">Ещё один матч</button><button id="quit" class="btn ghost">В главное меню</button></div></section>
+  <section id="finished" class="screen card"><h2 class="finish-heading">Игра окончена</h2><div id="result" class="result"></div><div id="resultscores" class="members"></div><div class="actions"><button id="again" class="btn">Играть снова</button><button id="quit" class="btn ghost">← Меню</button></div></section>
   <p id="error" class="error" role="status" aria-live="polite"></p>
 
 </div>
@@ -199,17 +275,18 @@ canvas{background:#e6efd5;border-radius:12px;image-rendering:auto;aspect-ratio:2
     // A single FastAPI service hosts this page and the websocket at /ws.
     // A separate static host can set window.SNAKE_WS_URL to a secure wss:// address.
     if(typeof window.SNAKE_WS_URL==='string' && window.SNAKE_WS_URL.trim())return window.SNAKE_WS_URL.trim();
-    return `${location.protocol==='https:'?'wss':'ws'}://${location.host}/ws`;
+    return 'wss://snake-arena-telegram.onrender.com/ws';
   };
   function connect(initial) {
     error('');
     if(app.ws)try{app.ws.close();}catch(_){}
     const ws=new WebSocket(serverUrl());app.ws=ws;
     signal(false,'Соединение…');
-    const guard=setTimeout(()=>{if(ws.readyState!==WebSocket.OPEN)ws.close();},10000);
-    ws.addEventListener('open',()=>{clearTimeout(guard);if(app.ws!==ws)return;signal(true,'На связи');send(initial);});
+    const guard=setTimeout(()=>{if(ws.readyState!==WebSocket.OPEN)ws.close();},90000);
+    const waking=setTimeout(()=>{if(app.ws===ws && ws.readyState!==WebSocket.OPEN){signal(false,'Сервер запускается');error('Первое подключение к матчу может занять около минуты.');}},4500);
+    ws.addEventListener('open',()=>{clearTimeout(guard);clearTimeout(waking);error('');if(app.ws!==ws)return;signal(true,'На связи');send(initial);});
     ws.addEventListener('error',()=>{if(app.ws===ws)error('Не удалось подключиться. Проверь адрес сервера и интернет.');});
-    ws.addEventListener('close',()=>{clearTimeout(guard);if(app.ws!==ws)return;clearNetworkAnimation();signal(false,'Нет соединения');if(app.phase!=='home'){show('home');error('Связь с матчем потеряна. Создай или войди в комнату заново.');}});
+    ws.addEventListener('close',()=>{clearTimeout(guard);clearTimeout(waking);if(app.ws!==ws)return;clearNetworkAnimation();signal(false,'Нет соединения');if(app.phase!=='home'){show('home');error('Связь с матчем потеряна. Создай или войди в комнату заново.');}});
     ws.addEventListener('message',event=>{if(app.ws!==ws)return;let m;try{m=JSON.parse(event.data);}catch(_){return;}onMessage(m);});
   }
   function start(type) {
@@ -224,7 +301,7 @@ canvas{background:#e6efd5;border-radius:12px;image-rendering:auto;aspect-ratio:2
     app.players=m.players||[];app.slots=m.slots;app.room=m.code;app.ready=Boolean(app.players.find(p=>p.id===app.me)?.ready);
     $('room-label').textContent=m.code;$('roomcode').textContent=m.code;
     $('lobbyinfo').textContent=`Игроков: ${app.players.length} / ${m.slots}. Начнём, когда все будут готовы.`;
-    $('members').innerHTML=app.players.map(p=>`<div class="member"><i class="dot" style="background:${p.color}"></i><span class="name">${escapeText(p.name)}${p.id===app.me?' (ты)':''}</span><span class="state">${p.ready?'✓ Готов':'Ожидание'}</span></div>`).join('');
+    $('members').innerHTML=app.players.map(p=>`<div class="member"><i class="dot" style="background:${p.color}"></i><span class="name">${escapeText(p.name)}${p.id===app.me&&p.name!=='Ты'?' (ты)':''}</span><span class="state">${p.ready?'✓ Готов':'Ожидание'}</span></div>`).join('');
     $('ready').textContent=app.ready?'Отменить готовность':'Я готов!';
     if(m.phase==='lobby')show('lobby');
   }
@@ -307,33 +384,34 @@ canvas{background:#e6efd5;border-radius:12px;image-rendering:auto;aspect-ratio:2
     const oldSnakes=previous?new Map(previous.snakes.map(p=>[p.id,p])):null;
     for(const snake of s.snakes){
       const before=oldSnakes?.get(snake.id);
-      for(let i=snake.body.length-1;i>=0;i--){
-        let [x,y]=snake.body[i];
-        if(before?.alive && snake.alive && progress<1){
-          const from=before.body[i] || before.body[before.body.length-1];
-          if(from && Math.abs(x-from[0])+Math.abs(y-from[1])<=1){
-            x=from[0]+(x-from[0])*progress;
-            y=from[1]+(y-from[1])*progress;
-          }
+      const body=snake.body.map(([cx,cy],i)=>{
+        if(before?.alive&&snake.alive&&progress<1){
+          const from=before.body[i] || before.body.at(-1);
+          if(from&&Math.abs(cx-from[0])+Math.abs(cy-from[1])<=1)return [from[0]+(cx-from[0])*progress,from[1]+(cy-from[1])*progress];
         }
-        ctx.globalAlpha=snake.alive?1:.27;
-        const px=x*tile+15,py=y*tile+15;
-        ctx.fillStyle=snake.color;
-        ctx.beginPath();ctx.arc(px,py,i===0?14:13,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle='rgba(255,255,255,.14)';
-        ctx.beginPath();ctx.ellipse(px-4,py-5,5,2.5,-.5,0,Math.PI*2);ctx.fill();
-        if(i===0&&snake.alive){
-          ctx.fillStyle='#223b30';ctx.beginPath();
-          ctx.arc(px-5,py-3,2.5,0,Math.PI*2);
-          ctx.arc(px+5,py-3,2.5,0,Math.PI*2);ctx.fill();
-          ctx.fillStyle='#fdfaf4';ctx.beginPath();ctx.arc(px-4,py-4,1,0,Math.PI*2);ctx.arc(px+6,py-4,1,0,Math.PI*2);ctx.fill();
-        }
+        return [cx,cy];
+      });
+      if(!body.length)continue;
+      const points=body.map(([x,y])=>[x*tile+15,y*tile+15]);
+      ctx.globalAlpha=snake.alive?1:.24;
+      ctx.strokeStyle=snake.color;ctx.lineWidth=25;ctx.lineCap='round';ctx.lineJoin='round';
+      ctx.beginPath();ctx.moveTo(points[points.length-1][0],points[points.length-1][1]);
+      for(let i=points.length-2;i>=0;i--)ctx.lineTo(points[i][0],points[i][1]);ctx.stroke();
+      if(snake.alive){
+        const [hx,hy]=points[0], neck=points[1]||[hx-30,hy];
+        const dx=hx-neck[0],dy=hy-neck[1],len=Math.hypot(dx,dy)||1;
+        const ux=dx/len,uy=dy/len,sideX=-uy,sideY=ux;
+        ctx.fillStyle=snake.color;ctx.beginPath();ctx.arc(hx,hy,13.6,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#fcf9ef';
+        for(const off of [-5.3,5.3]){ctx.beginPath();ctx.arc(hx+ux*4+sideX*off,hy+uy*4+sideY*off,3.4,0,Math.PI*2);ctx.fill();}
+        ctx.fillStyle='#28392c';
+        for(const off of [-5.3,5.3]){ctx.beginPath();ctx.arc(hx+ux*5+sideX*off,hy+uy*5+sideY*off,1.55,0,Math.PI*2);ctx.fill();}
       }
     }
     ctx.globalAlpha=1;
     if(updateHud){
       $('remaining').textContent=app.mode==='solo'?'∞':formatClock(s.remaining);
-      $('scores').innerHTML=s.snakes.map(p=>`<div class="score ${p.alive?'':'dead'}"><i class="dot" style="background:${p.color}"></i><span class="who">${escapeText(p.name)}${p.id===app.me?' (ты)':''}</span><strong>${p.score} 🍎</strong></div>`).join('');
+      $('scores').innerHTML=s.snakes.map(p=>`<div class="score ${p.alive?'':'dead'}"><i class="dot" style="background:${p.color}"></i><span class="who">${escapeText(p.name)}${p.id===app.me&&p.name!=='Ты'?' (ты)':''}</span><strong>${p.score} 🍎</strong></div>`).join('');
     }
   }
   // Classic single-player mode is deliberately client-side: no rooms or WebSocket.
@@ -354,9 +432,9 @@ canvas{background:#e6efd5;border-radius:12px;image-rendering:auto;aspect-ratio:2
     if(app.ws){const ws=app.ws;app.ws=null;ws.close();}
     stopSolo();app.mode='solo';app.me='solo';app.room='';
     solo.best=loadBest();solo.direction='right';solo.wanted='right';solo.queued=false;
-    solo.state={type:'state',width:SOLO_W,height:SOLO_H,remaining:0,food:[],snakes:[{id:'solo',name:'Ты',color:'#438d67',body:[[7,10],[6,10],[5,10]],alive:true,score:0}]};
+    solo.state={type:'state',width:SOLO_W,height:SOLO_H,remaining:0,food:[],snakes:[{id:'solo',name:'Ты',color:'#438d67',body:[[4,10],[3,10],[2,10]],alive:true,score:0}]};
     const food=newFood();if(food)solo.state.food=[food];
-    $('solo-best').textContent=solo.best;$('solo-pause').textContent='⏸ Пауза';
+    $('solo-best').textContent=solo.best;$('solo-pause').textContent='Пауза';
     $('solo-tools').classList.add('visible');$('gamecode').textContent='Один игрок';
     signal(true,'Одиночная игра');show('playing');draw(solo.state);
     scheduleSolo();
@@ -365,7 +443,7 @@ canvas{background:#e6efd5;border-radius:12px;image-rendering:auto;aspect-ratio:2
     if(solo.timer!==null)clearTimeout(solo.timer);
     solo.timer=null;
     if(app.mode==='solo'&&app.phase==='playing'&&!solo.paused&&solo.state){
-      const delay=Math.max(105,180-solo.state.snakes[0].score*5);
+      const delay=Math.max(155,265-solo.state.snakes[0].score*3);
       solo.timer=setTimeout(soloTick,delay);
     }
   }
@@ -401,7 +479,7 @@ canvas{background:#e6efd5;border-radius:12px;image-rendering:auto;aspect-ratio:2
     if(app.mode!=='solo'||app.phase!=='playing'||!solo.state)return;
     solo.paused=!solo.paused;
     $('solo-paused').classList.toggle('visible',solo.paused);
-    $('solo-pause').textContent=solo.paused?'▶ Продолжить':'⏸ Пауза';
+    $('solo-pause').textContent=solo.paused?'Продолжить':'Пауза';
     if(solo.paused){if(solo.timer!==null)clearTimeout(solo.timer);solo.timer=null;}else scheduleSolo();
   }
   const turn=direction=>{
@@ -434,6 +512,7 @@ canvas{background:#e6efd5;border-radius:12px;image-rendering:auto;aspect-ratio:2
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&app.mode==='solo'&&app.phase==='playing'&&!solo.paused)pauseSolo();});
   let touch=null;canvas.addEventListener('touchstart',e=>{if(e.touches.length)touch={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});
   canvas.addEventListener('touchend',e=>{if(!touch||!e.changedTouches.length)return;const dx=e.changedTouches[0].clientX-touch.x,dy=e.changedTouches[0].clientY-touch.y;touch=null;if(Math.max(Math.abs(dx),Math.abs(dy))<22)return;turn(Math.abs(dx)>Math.abs(dy)?dx>0?'right':'left':dy>0?'down':'up');},{passive:true});
+  if(urlParams.get('mode')==='solo' && !codeFromLink)chooseMode('solo');
 })();
 </script>
 </body>
