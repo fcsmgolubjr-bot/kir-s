@@ -8,14 +8,14 @@ from dataclasses import dataclass, field
 import random
 from typing import Optional
 
-WIDTH = 26
-HEIGHT = 20
+WIDTH = 20
+HEIGHT = 16
 TICK_SECONDS = 0.18
-MAX_TICKS = 1000  # 3 minutes total at 180 ms per tick
+MAX_TICKS = 500  # 90-second match at 180 ms per tick
 FOOD_COUNT = 2
 DIRECTIONS = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
 OPPOSITE = {"up": "down", "down": "up", "left": "right", "right": "left"}
-COLORS = ["#57e6aa", "#ffcd62", "#8dbbff", "#ff85c0"]
+COLORS = ["#438d67", "#d77c45", "#668fca", "#a86ba0"]
 # Separated corners; opposite tails stay safely away from each other.
 SPAWNS = [((4, 4), "right"), ((WIDTH - 5, HEIGHT - 5), "left"),
           ((WIDTH - 5, 4), "left"), ((4, HEIGHT - 5), "right")]
@@ -43,6 +43,8 @@ class Match:
     rng: random.Random = field(default_factory=random.Random)
     snakes: list[Snake] = field(init=False)
     food: list[tuple[int, int]] = field(default_factory=list)
+    bonus: Optional[tuple[int, int]] = None
+    bonus_expires: int = 0
     tick: int = 0
     done: bool = False
     winner: Optional[str] = None
@@ -66,6 +68,15 @@ class Match:
         free = [(x, y) for y in range(HEIGHT) for x in range(WIDTH) if (x, y) not in occupied]
         if free:
             self.food.append(self.rng.choice(free))
+
+    def spawn_bonus(self) -> None:
+        occupied = {pos for snake in self.snakes for pos in snake.body}
+        occupied.update(self.food)
+        free = [(x, y) for y in range(2, HEIGHT - 2) for x in range(2, WIDTH - 2)
+                if (x, y) not in occupied]
+        if free:
+            self.bonus = self.rng.choice(free)
+            self.bonus_expires = self.tick + 28
 
     def queue_turn(self, pid: str, direction: str) -> None:
         if self.done:
@@ -92,6 +103,10 @@ class Match:
         if self.done:
             return
         self.tick += 1
+        if self.bonus is not None and self.tick >= self.bonus_expires:
+            self.bonus = None
+        if self.bonus is None and self.tick % 52 == 0:
+            self.spawn_bonus()
         heads = {}
         eating = {}
         for snake in self.snakes:
@@ -128,6 +143,7 @@ class Match:
                     eliminated.update((p.pid, q.pid))
 
         consumed = set()
+        bonus_taken = False
         for snake in live:
             if snake.pid in eliminated:
                 snake.alive = False
@@ -139,7 +155,12 @@ class Match:
                 consumed.add(head)
             else:
                 snake.body.pop()
+            if self.bonus is not None and head == self.bonus:
+                snake.score += 3
+                bonus_taken = True
 
+        if bonus_taken:
+            self.bonus = None
         if consumed:
             self.food = [pos for pos in self.food if pos not in consumed]
             for _ in consumed:
@@ -158,6 +179,7 @@ class Match:
             "type": "state", "width": WIDTH, "height": HEIGHT,
             "tick": self.tick, "remaining": max(0, round((MAX_TICKS - self.tick) * TICK_SECONDS)),
             "food": [list(p) for p in self.food],
+            "bonus": list(self.bonus) if self.bonus is not None else None,
             "snakes": [
                 {"id": s.pid, "name": s.name, "color": s.color, "body": [list(p) for p in s.body],
                  "alive": s.alive, "score": s.score} for s in self.snakes
