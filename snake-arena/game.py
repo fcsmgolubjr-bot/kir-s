@@ -9,13 +9,13 @@ import random
 from typing import Optional
 
 WIDTH = 20
-HEIGHT = 16
+HEIGHT = 20
 TICK_SECONDS = 0.18
 MAX_TICKS = 500  # 90-second match at 180 ms per tick
 FOOD_COUNT = 2
 DIRECTIONS = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
 OPPOSITE = {"up": "down", "down": "up", "left": "right", "right": "left"}
-COLORS = ["#438d67", "#d77c45", "#668fca", "#a86ba0"]
+COLORS = ["#a5bd38", "#d78551", "#8da6d9", "#b99dca"]
 # Separated corners; opposite tails stay safely away from each other.
 SPAWNS = [((4, 4), "right"), ((WIDTH - 5, HEIGHT - 5), "left"),
           ((WIDTH - 5, 4), "left"), ((4, HEIGHT - 5), "right")]
