@@ -52,18 +52,123 @@
     .foot{text-align:center;font-size:12px;color:#779d95;margin-top:auto;padding-top:8px}
     @media(min-width:640px){.shell{padding-top:30px}.pad{grid-template-columns:repeat(3,72px);grid-template-rows:repeat(2,60px)}}
     @media(max-width:360px){.card{padding:14px}.roomcode{font-size:26px}.mode button{font-size:15px}}
-  </style>
+  
+/* SNAKE ARENA / ARCADE ART DIRECTION V1
+   Custom designed arcade identity. Existing controls & game logic unchanged. */
+:root{--bg:#080c19;--panel:#11192b;--panel2:#1c2440;--line:#38435a;--text:#f6f7ee;--muted:#a2adbe;--lime:#c7ff4c;--gold:#ffe379;--pink:#ff68b9;--cyan:#64e7ff}
+html,body{background:#080c19;color:var(--text)}
+body{background:radial-gradient(circle at 110% 1%,rgba(111,64,242,.27),transparent 38%),radial-gradient(circle at -20% 40%,rgba(15,202,230,.12),transparent 45%),#080c19;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:-.01em}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.16;background-image:linear-gradient(90deg,transparent 0,transparent calc(100% - 1px),#546085 100%),linear-gradient(transparent 0,transparent calc(100% - 1px),#546085 100%);background-size:39px 39px;mask-image:linear-gradient(to bottom,black,transparent 72%)}
+.shell{max-width:530px;position:relative;isolation:isolate;padding:20px 19px 24px;gap:17px}
+.top{padding:0 0 13px;border-bottom:1px solid #ffffff2b;min-height:53px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:1000;font-size:16px;letter-spacing:.055em;color:#f9faec;text-shadow:0 2px 1px #000}
+.logo b{color:var(--lime)}
+.logo .logo-mark{width:37px;height:37px;border:2px solid #c8ff4d;background:linear-gradient(140deg,#2d3860,#0b1522);border-radius:11px 13px 8px 12px;display:grid;place-items:center;box-shadow:4px 4px 0 #1c5134;color:var(--lime);font-size:23px;transform:rotate(-4deg)}
+.signal{border-color:#475067;background:#131b2a;color:#bfc9d0;font-size:10px;text-transform:uppercase;letter-spacing:.055em;font-weight:850;border-radius:7px;padding:8px 10px}
+.signal:before{background:#ffa66b}
+.signal.online:before{background:#beff4a;box-shadow:0 0 8px #beff4a}
+.card{border:1px solid #4d5c85;background:linear-gradient(154deg,rgba(34,44,78,.98),rgba(14,20,43,.98));border-radius:20px;box-shadow:0 10px 0 #050815,0 16px 40px #0009;position:relative;overflow:hidden}
+#choose.card{padding:0;border:1px solid #6a779d}
+#choose .arcade-head{padding:23px 23px 6px;position:relative;overflow:hidden;background:radial-gradient(circle at 95% 20%,#7a46d43d,transparent 45%)}
+#choose .eyebrow{color:var(--lime);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;display:flex;align-items:center;gap:10px;margin-bottom:19px}
+#choose .eyebrow .led{width:7px;height:7px;background:var(--lime);border-radius:50%;box-shadow:0 0 9px var(--lime)}
+#choose .eyebrow .issue{margin-left:auto;color:#8493b3;letter-spacing:.03em}
+#choose .hero-title{position:relative;z-index:2;font-family:'Arial Black',Impact,system-ui,sans-serif;font-weight:1000;font-style:italic;line-height:.91;font-size:clamp(44px,11.5vw,70px);letter-spacing:-.075em;color:#fff;transform:skew(-5deg);text-shadow:5px 6px 0 #07091c}
+#choose .hero-title strong{display:block;white-space:nowrap;font-weight:1000}
+#choose .hero-title strong:last-child{color:var(--lime);-webkit-text-stroke:1px #1e3b3a;text-shadow:5px 6px 0 #142037,7px 8px 0 #090b18}
+#choose .hero-title .spark{display:inline-block;font:normal 30px system-ui;color:#ff72b5;transform:skew(5deg) rotate(18deg);margin-left:7px;vertical-align:middle;letter-spacing:0}
+#choose .arcade-lead{position:relative;z-index:2;font-size:13px;max-width:200px;font-weight:700;line-height:1.45;color:#c4cbe6;margin:18px 0 0}
+#choose .hero-art{width:188px;height:210px;position:absolute;right:0;top:38px;filter:drop-shadow(0 13px 8px #0007);transform:rotate(-7deg);pointer-events:none;opacity:1;z-index:1}
+#choose .marquee{margin-top:16px;background:#d6ff52;color:#111628;white-space:nowrap;overflow:hidden;display:flex;gap:11px;align-items:center;padding:9px 0;font-size:11px;font-weight:1000;letter-spacing:.15em;border-top:2px solid #0a1533;border-bottom:2px solid #0a1533}
+#choose .marquee span{flex:none}
+#choose .marquee i{font-style:normal;color:#5236be}
+#choose .mode-container{padding:18px 18px 20px;background:#101629}
+#choose .mode-caption{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:11px;font-weight:950;letter-spacing:.18em;color:#c8cde4;margin:0 0 12px}
+#choose .mode-caption span:last-child{color:#8290ad;font-size:10px;letter-spacing:0}
+#choose .choices{display:grid;grid-template-columns:1fr;gap:11px;margin:0}
+#choose .choice{min-height:121px;position:relative;overflow:hidden;display:flex;align-items:flex-start;flex-direction:column;justify-content:center;border:2px solid #8affad;border-radius:15px;background:linear-gradient(110deg,#164e43,#14302e 78%);padding:14px 16px 14px 96px;box-shadow:0 5px 0 #071912;text-align:left;color:white;transition:transform .13s ease,box-shadow .13s ease;gap:3px}
+#choose .choice:active{transform:translateY(4px);box-shadow:0 1px 0 #071912}
+#choose .choice.multiplayer{background:linear-gradient(111deg,#2b3d93,#1a255b);border-color:#8eb1ff;box-shadow:0 5px 0 #0d1441}
+#choose .choice.multiplayer:active{box-shadow:0 1px 0 #0d1441}
+#choose .choice .symbol{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:66px;height:66px;display:grid;place-items:center;border:2px solid #ffffff44;border-radius:15px;background:#122a30;font-size:36px;box-shadow:inset 0 -5px 0 #0005}
+#choose .choice.multiplayer .symbol{background:#202058}
+#choose .choice .choice-nr{font-size:10px;color:#b8ffbb;font-weight:900;letter-spacing:.15em;margin:0 0 3px}
+#choose .choice.multiplayer .choice-nr{color:#c7cdff}
+#choose .choice strong{font-size:24px;line-height:1.1;font-family:Impact,'Arial Black',system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase}
+#choose .choice small{color:#bbded3;font-size:11px;letter-spacing:0;line-height:1.3;max-width:240px}
+#choose .choice.multiplayer small{color:#b7c8f8}
+#choose .choice .choice-chevron{position:absolute;right:14px;top:14px;color:white;font-size:20px;line-height:1;border:1px solid #ffffff55;border-radius:50%;width:26px;height:26px;display:grid;place-items:center}
+#choose .home-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:17px;color:#7d90b4;font-size:10px;font-weight:850;letter-spacing:.03em}
+#choose .home-bottom .hot{color:#f8c45d}
+.screen.card:not(#choose){border-radius:19px;padding:23px 20px 22px}
+h1,h2{font-family:Impact,'Arial Black',system-ui,sans-serif;text-transform:uppercase;font-weight:900;letter-spacing:.03em;line-height:1.14}
+h1{font-size:35px}h2{font-size:28px}
+p{color:#aebbd4}.subtitle{margin:9px 0 18px;font-size:14px;line-height:1.4}
+label{color:#a5ffcd;font-size:11px;text-transform:uppercase;letter-spacing:.12em}
+input{background:#0a1128;border:2px solid #38466c;color:#fff;border-radius:10px;font-weight:800;outline:none}
+input:focus{border-color:var(--lime)}
+.btn{background:var(--lime);color:#101728;border:2px solid #dfff8b;border-radius:10px;box-shadow:0 5px 0 #4c8e1c;font-weight:1000;letter-spacing:.02em;text-transform:uppercase;font-size:15px;transition:transform .12s,box-shadow .12s}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #4c8e1c}
+.btn.alt{background:#5e75e7;color:#fff;border-color:#9cb2ff;box-shadow:0 5px 0 #263477}
+.btn.ghost{background:#152139;color:#bce8ff;border:2px solid #4b608a;box-shadow:none}
+.mode button{background:#121c36;border:2px solid #3c4a73;color:#c5ccec;border-radius:10px}.mode button.selected{background:#c9ff54;border-color:#f1ffa4;color:#091529;box-shadow:0 4px 0 #5b7d22}
+.split{color:#7f92bd}.split:before,.split:after{background:#334364}
+.roomcode{background:#090f25;color:var(--lime);border:2px dashed #6678b3;font-family:Impact,'Arial Black',system-ui,sans-serif;letter-spacing:.2em;border-radius:12px}
+.member{background:#141e3e;border:1px solid #485e84}.member .state{color:#cdebf9}
+.boardhead{background:#121a36;padding:12px;border:1px solid #36477a;border-radius:12px;margin-bottom:11px}.boardhead h2{font-size:23px;color:var(--lime)}.boardhead .meta{font-weight:800;color:#c4d5f5}
+.board-shell{border:3px solid #7b8df2;box-shadow:0 0 0 4px #151e41,0 12px 0 #030817,0 18px 30px #0008;background:#080e24;border-radius:14px;margin:4px 4px 17px;padding:5px}
+canvas{background:#0d152d;border-radius:8px;image-rendering:auto}
+.score{background:#131d38;border:1px solid #485887;border-radius:9px}.score strong{color:var(--lime);font-weight:950}
+.solo-tools button{background:#20294f;border:1px solid #5c67a4;color:#eaf7ff;border-radius:9px}
+.solo-tools span{color:#a9b9de}.solo-paused{color:var(--gold)}
+.arrow{background:linear-gradient(145deg,#334783,#192949);border:2px solid #819bdb;border-radius:15px;color:#f4faef;font-size:25px;box-shadow:0 5px 0 #08142e}
+.arrow:active{transform:translateY(4px);box-shadow:0 1px 0 #08142e;background:#546bb2}
+.bigcount,.result{color:var(--lime);text-shadow:3px 4px 0 #1a2c52}
+.foot{color:#7282a5;font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+.error{color:#ff9eaa}
+@media(min-width:640px){.shell{padding-top:28px}}
+@media(max-width:410px){#choose .hero-art{width:155px;height:180px;right:0;top:56px}#choose .hero-title{font-size:clamp(46px,12vw,57px)}#choose .arcade-lead{max-width:168px}#choose .choice strong{font-size:22px}}
+@media(max-width:360px){.shell{padding:13px 11px}#choose .arcade-head{padding:18px 15px 5px}#choose .mode-container{padding:15px}#choose .hero-art{width:137px;top:54px}#choose .choice{padding-left:88px}#choose .choice .symbol{left:9px;width:62px;height:62px}}
+@media(prefers-reduced-motion:reduce){#choose .choice,.btn{transition:none}}
+
+</style>
 </head>
 <body>
 <div class="shell">
-  <div class="top"><div class="logo">🐍 SNAKE <b>ARENA</b></div><span id="signal" class="signal">Не подключено</span></div>
+  <div class="top"><div class="logo"><span class="logo-mark">ϟ</span><span>SNAKE <b>ARENA</b></span></div><span id="signal" class="signal">Не подключено</span></div>
   <section id="choose" class="screen active card">
-    <h1>Выбирай режим</h1><p class="subtitle">Одна игра — два способа играть. Начни один или пригласи друзей.</p>
-    <div class="choices">
-      <button class="choice" id="solo-choice" type="button"><span class="symbol">🍎</span><strong>Одиночная</strong><small>Классическая змейка, рекорд и пауза</small></button>
-      <button class="choice multiplayer" id="multi-choice" type="button"><span class="symbol">⚔️</span><strong>С друзьями</strong><small>Онлайн-матчи на 2–4 игроков</small></button>
+    <div class="arcade-head">
+      <div class="eyebrow"><span class="led"></span> ТВОЯ КАРМАННАЯ АРКАДА <span class="issue">NO. 001</span></div>
+      <div class="hero-title"><strong>ЗМЕЙКА</strong><strong>АРЕНА<span class="spark">✦</span></strong></div>
+      <p class="arcade-lead">ЛОВИ ЯБЛОКИ. ОБГОНЯЙ ДРУЗЕЙ. СТАНЬ ЛЕГЕНДОЙ АРЕНЫ.</p>
+      <svg class="hero-art" viewBox="0 0 200 222" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <ellipse cx="112" cy="199" rx="73" ry="17" fill="#060a1e" opacity=".7"/>
+        <path d="M68 15C130 -3 176 29 164 70C155 102 101 89 76 111C54 130 93 151 130 140" stroke="#111630" stroke-width="56" stroke-linecap="round"/>
+        <path d="M68 15C130 -3 176 29 164 70C155 102 101 89 76 111C54 130 93 151 130 140" stroke="#b5f540" stroke-width="49" stroke-linecap="round"/>
+        <path d="M68 15C130 -3 176 29 164 70C155 102 101 89 76 111C54 130 93 151 130 140" stroke="#f1ff7a" stroke-width="14" stroke-linecap="round" stroke-dasharray="8 23" opacity=".65"/>
+        <path d="M130 136C119 115 83 111 59 120C36 129 20 145 29 163C38 182 70 179 92 167" stroke="#111630" stroke-width="66" stroke-linecap="round"/>
+        <path d="M130 136C119 115 83 111 59 120C36 129 20 145 29 163C38 182 70 179 92 167" stroke="#a5eb25" stroke-width="55" stroke-linecap="round"/>
+        <ellipse cx="65" cy="160" rx="49" ry="40" transform="rotate(-9 65 160)" fill="#baff2b" stroke="#151931" stroke-width="8"/>
+        <ellipse cx="55" cy="152" rx="8" ry="13" fill="#0f1a22"/><ellipse cx="89" cy="150" rx="8" ry="13" fill="#0f1a22"/>
+        <circle cx="56" cy="147" r="3" fill="white"/><circle cx="90" cy="145" r="3" fill="white"/>
+        <path d="M62 177Q73 184 84 174" stroke="#12523a" stroke-width="4" stroke-linecap="round"/>
+        <path d="M94 173Q119 187 113 198" stroke="#ff709a" stroke-width="7" stroke-linecap="round"/>
+        <path d="M106 195L112 205L117 193" stroke="#ff709a" stroke-width="5" stroke-linejoin="round"/>
+        <circle cx="160" cy="174" r="22" fill="#ff5279" stroke="#291332" stroke-width="6"/>
+        <ellipse cx="157" cy="166" rx="10" ry="5" fill="#ff9cb0" opacity=".7"/>
+        <path d="M161 152L165 140M164 143Q179 135 182 147Q170 154 164 143" stroke="#75ef70" stroke-width="5" stroke-linejoin="round"/>
+        <path d="M175 17L179 27L190 30L179 34L175 44L170 34L159 30L170 26Z" fill="#fff06b" stroke="#152139" stroke-width="2"/>
+      </svg>
     </div>
-    <p class="hint">В одиночную игру можно играть без подключения к игровому серверу после загрузки страницы.</p>
+    <div class="marquee" aria-hidden="true"><span>● БЫСТРЕЕ</span><i>✦</i><span>● УМНЕЕ</span><i>✦</i><span>● ДО ПОБЕДЫ</span><i>✦</i><span>● ИГРАЙ СЕЙЧАС</span></div>
+    <div class="mode-container">
+      <div class="mode-caption"><span>ВЫБЕРИ СВОЙ РЕЖИМ</span><span>01 / 02</span></div>
+      <div class="choices">
+        <button class="choice" id="solo-choice" type="button"><span class="symbol" aria-hidden="true">🍏</span><span class="choice-nr">01 · CLASSIC RUN</span><strong>ОДИНОЧНАЯ</strong><small>Собирай яблоки, ставь рекорды</small><span class="choice-chevron">↗</span></button>
+        <button class="choice multiplayer" id="multi-choice" type="button"><span class="symbol" aria-hidden="true">⚡</span><span class="choice-nr">02 · ONLINE BATTLE</span><strong>МУЛЬТИПЛЕЕР</strong><small>2–4 игрока · сразись с друзьями</small><span class="choice-chevron">↗</span></button>
+      </div>
+      <div class="home-bottom"><span>● АРКАДА ВНУТРИ TELEGRAM</span><span class="hot">★ ПОГНАЛИ!</span></div>
+    </div>
   </section>
   <section id="home" class="screen card">
     <h1>Змейка с друзьями</h1><p class="subtitle">Одна арена · 2–4 человека · каждый со своего телефона.</p>
@@ -133,7 +238,7 @@
     const guard=setTimeout(()=>{if(ws.readyState!==WebSocket.OPEN)ws.close();},10000);
     ws.addEventListener('open',()=>{clearTimeout(guard);if(app.ws!==ws)return;signal(true,'На связи');send(initial);});
     ws.addEventListener('error',()=>{if(app.ws===ws)error('Не удалось подключиться. Проверь адрес сервера и интернет.');});
-    ws.addEventListener('close',()=>{clearTimeout(guard);if(app.ws!==ws)return;signal(false,'Нет соединения');if(app.phase!=='home'){show('home');error('Связь с матчем потеряна. Создай или войди в комнату заново.');}});
+    ws.addEventListener('close',()=>{clearTimeout(guard);if(app.ws!==ws)return;clearNetworkAnimation();signal(false,'Нет соединения');if(app.phase!=='home'){show('home');error('Связь с матчем потеряна. Создай или войди в комнату заново.');}});
     ws.addEventListener('message',event=>{if(app.ws!==ws)return;let m;try{m=JSON.parse(event.data);}catch(_){return;}onMessage(m);});
   }
   function start(type) {
@@ -157,11 +262,13 @@
     if(app.mode!=='multi')return;
     switch(m.type){
       case 'welcome':app.me=m.id;app.room=m.code;break;
-      case 'lobby':drawLobby(m);break;
+      case 'lobby':if(m.phase==='lobby')clearNetworkAnimation();drawLobby(m);break;
       case 'countdown':show('countdown');$('count').textContent=m.seconds;break;
-      case 'match_start':show('playing');$('gamecode').textContent=app.room;break;
-      case 'state':app.last=m;draw(m);break;
+      case 'match_start':clearNetworkAnimation();show('playing');$('gamecode').textContent=app.room;break;
+      case 'state':app.last=m;acceptNetworkState(m);break;
       case 'result':{
+        // The authoritative result ends the animation; no stale frames after match.
+        clearNetworkAnimation();
         $('again').textContent='Ещё один матч';
         const mine=m.winnerId===app.me;
         $('result').textContent=m.winnerId?(mine?'🏆 Победа!':`🏆 Победил ${m.players.find(p=>p.id===m.winnerId)?.name||'соперник'}`):'🤝 Ничья';
@@ -172,18 +279,70 @@
     }
   }
   const canvas=$('board'),ctx=canvas.getContext('2d');
-  function draw(s) {
+  // The server sends authoritative grid snapshots every 180 ms (5.6 Hz).
+  // Animate ONLY the intermediate pixels at the device refresh rate. No
+  // extrapolation: clients never decide movement, collisions or scoring.
+  const NETWORK_TICK_MS=180;
+  const netAnimation={previous:null,current:null,receivedAt:0,frame:0};
+  function clearNetworkAnimation(){
+    if(netAnimation.frame)cancelAnimationFrame(netAnimation.frame);
+    netAnimation.frame=0;netAnimation.previous=null;netAnimation.current=null;
+  }
+  function animateNetwork(now){
+    netAnimation.frame=0;
+    if(app.mode!=='multi'||app.phase!=='playing'||!netAnimation.current)return;
+    const progress=Math.max(0,Math.min(1,(now-netAnimation.receivedAt)/NETWORK_TICK_MS));
+    draw(netAnimation.current,netAnimation.previous,progress,false);
+    if(progress<1)netAnimation.frame=requestAnimationFrame(animateNetwork);
+  }
+  function acceptNetworkState(snapshot){
+    if(app.mode!=='multi'||app.phase!=='playing')return;
+    const previous=netAnimation.current;
+    // If packets were missed or it is the first snapshot, snap immediately:
+    // interpolating over several squares could draw a wall-crossing ghost.
+    if(!previous || !Number.isInteger(snapshot.tick)||snapshot.tick!==previous.tick+1){
+      clearNetworkAnimation();netAnimation.current=snapshot;draw(snapshot);return;
+    }
+    netAnimation.previous=previous;
+    netAnimation.current=snapshot;
+    netAnimation.receivedAt=performance.now();
+    draw(snapshot,previous,0,true); // Update score and timer only per network tick.
+    if(!netAnimation.frame)netAnimation.frame=requestAnimationFrame(animateNetwork);
+  }
+  function draw(s,previous=null,progress=1,updateHud=true) {
     if(app.phase==='countdown')show('playing');
     if(app.phase!=='playing')return;
     const w=s.width||26,h=s.height||20,tile=30;
     if(canvas.width!==w*tile)canvas.width=w*tile;if(canvas.height!==h*tile)canvas.height=h*tile;
-    ctx.fillStyle='#0a2829';ctx.fillRect(0,0,canvas.width,canvas.height);
-    for(let y=0;y<h;y++)for(let x=0;x<w;x++){if((x+y)%2===0){ctx.fillStyle='#103032';ctx.fillRect(x*tile,y*tile,tile,tile);}}
-    for(const [x,y] of s.food){ctx.fillStyle='#d95c59';ctx.beginPath();ctx.arc(x*tile+15,y*tile+15,10,0,Math.PI*2);ctx.fill();ctx.fillStyle='#8bdb84';ctx.fillRect(x*tile+15,y*tile+2,4,7);}
-    for(const snake of s.snakes){for(let i=snake.body.length-1;i>=0;i--){const [x,y]=snake.body[i];ctx.globalAlpha=snake.alive?1:.24;ctx.fillStyle=snake.color;ctx.beginPath();ctx.roundRect(x*tile+2,y*tile+2,26,26,i===0?9:6);ctx.fill();if(i===0&&snake.alive){ctx.fillStyle='#07292a';ctx.beginPath();ctx.arc(x*tile+11,y*tile+11,3,0,Math.PI*2);ctx.arc(x*tile+20,y*tile+11,3,0,Math.PI*2);ctx.fill();}}}
+    ctx.fillStyle='#0b132c';ctx.fillRect(0,0,canvas.width,canvas.height);
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){if((x+y)%2===0){ctx.fillStyle='#121b39';ctx.fillRect(x*tile,y*tile,tile,tile);}}
+    for(const [x,y] of s.food){ctx.fillStyle='#fa557b';ctx.beginPath();ctx.arc(x*tile+15,y*tile+15,10,0,Math.PI*2);ctx.fill();ctx.fillStyle='#b5ff54';ctx.fillRect(x*tile+15,y*tile+2,4,7);}
+    const oldSnakes=previous?new Map(previous.snakes.map(p=>[p.id,p])):null;
+    for(const snake of s.snakes){
+      const before=oldSnakes?.get(snake.id);
+      for(let i=snake.body.length-1;i>=0;i--){
+        let [x,y]=snake.body[i];
+        if(before?.alive && snake.alive && progress<1){
+          const from=before.body[i] || before.body[before.body.length-1];
+          if(from && Math.abs(x-from[0])+Math.abs(y-from[1])<=1){
+            x=from[0]+(x-from[0])*progress;
+            y=from[1]+(y-from[1])*progress;
+          }
+        }
+        ctx.globalAlpha=snake.alive?1:.24;ctx.fillStyle=snake.color;
+        ctx.beginPath();ctx.roundRect(x*tile+2,y*tile+2,26,26,i===0?9:6);ctx.fill();
+        if(i===0&&snake.alive){
+          ctx.fillStyle='#101629';ctx.beginPath();
+          ctx.arc(x*tile+11,y*tile+11,3,0,Math.PI*2);
+          ctx.arc(x*tile+20,y*tile+11,3,0,Math.PI*2);ctx.fill();
+        }
+      }
+    }
     ctx.globalAlpha=1;
-    $('remaining').textContent=app.mode==='solo'?'∞':formatClock(s.remaining);
-    $('scores').innerHTML=s.snakes.map(p=>`<div class="score ${p.alive?'':'dead'}"><i class="dot" style="background:${p.color}"></i><span class="who">${escapeText(p.name)}${p.id===app.me?' (ты)':''}</span><strong>${p.score} 🍎</strong></div>`).join('');
+    if(updateHud){
+      $('remaining').textContent=app.mode==='solo'?'∞':formatClock(s.remaining);
+      $('scores').innerHTML=s.snakes.map(p=>`<div class="score ${p.alive?'':'dead'}"><i class="dot" style="background:${p.color}"></i><span class="who">${escapeText(p.name)}${p.id===app.me?' (ты)':''}</span><strong>${p.score} 🍎</strong></div>`).join('');
+    }
   }
   // Classic single-player mode is deliberately client-side: no rooms or WebSocket.
   const SOLO_W=26, SOLO_H=20;
@@ -192,7 +351,7 @@
   const opposite={up:'down',down:'up',left:'right',right:'left'};
   const loadBest=()=>{try{return Math.max(0,Number(localStorage.getItem('snake_solo_best'))||0);}catch(_){return 0;}};
   function stopSolo(){if(solo.timer!==null)clearTimeout(solo.timer);solo.timer=null;solo.state=null;solo.paused=false;$('solo-paused').classList.remove('visible');$('solo-tools').classList.remove('visible');}
-  function chooseMode(mode){app.mode=mode;error('');if(mode==='multi'){signal(false,'Не подключено');show('home');}else startSolo();}
+  function chooseMode(mode){clearNetworkAnimation();app.mode=mode;error('');if(mode==='multi'){signal(false,'Не подключено');show('home');}else startSolo();}
   function newFood(){
     const occupied=new Set(solo.state.snakes[0].body.map(p=>p.join(',')));
     const free=[];for(let y=0;y<SOLO_H;y++)for(let x=0;x<SOLO_W;x++)if(!occupied.has(`${x},${y}`))free.push([x,y]);
@@ -268,7 +427,7 @@
   $('create').addEventListener('click',()=>start('create'));$('join').addEventListener('click',()=>start('join'));
   $('code').addEventListener('keydown',e=>{if(e.key==='Enter')start('join');});
   $('ready').addEventListener('click',()=>send({type:'ready',value:!app.ready}));
-  const leave=()=>{stopSolo();if(app.ws){const sock=app.ws;app.ws=null;sock.close();}app.me='';app.room='';app.mode=null;show('choose');signal(false,'Не подключено');error('');};
+  const leave=()=>{clearNetworkAnimation();stopSolo();if(app.ws){const sock=app.ws;app.ws=null;sock.close();}app.me='';app.room='';app.mode=null;show('choose');signal(false,'Не подключено');error('');};
   $('leave').addEventListener('click',leave);$('quit').addEventListener('click',leave);
   $('again').addEventListener('click',()=>{if(app.mode==='solo')startSolo();else send({type:'again'});});
   $('share').addEventListener('click',async()=>{const url=link();const text=`Заходи в Змейку! Комната ${app.room}\n${url}`;try{if(navigator.share)await navigator.share({title:'Змейка с друзьями',text,url});else{await navigator.clipboard.writeText(text);$('share').textContent='✓ Приглашение скопировано';setTimeout(()=>$('share').textContent='🔗 Поделиться приглашением',1500);}}catch(e){if(e.name!=='AbortError')error('Ссылка: '+url);}});
