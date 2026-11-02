@@ -261,7 +261,7 @@ async def prepared_invite(request: Request):
         "id": secrets.token_hex(8),
         "title": "Приглашение в Snake Arena",
         "input_message_content": {
-            "message_text": "🐍 Snake Arena\\nЗаходи сыграть со мной!\\nКомната: " + code,
+            "message_text": "🐍 Snake Arena\nЗаходи сыграть со мной!\nКомната: " + code,
         },
         "reply_markup": {
             "inline_keyboard": [[{"text": "🎮 Войти в комнату", "url": direct_url}]]
