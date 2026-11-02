@@ -64,8 +64,9 @@ async def index():
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 BOT_WEBHOOK_SECRET = os.getenv("BOT_WEBHOOK_SECRET", "").strip() or secrets.token_hex(24)
 PUBLIC_URL = "https://snake-arena-telegram.onrender.com"
-SOLO_URL = "https://fcsmgolubjr-bot.github.io/kir-s/snake/"
-MULTI_URL = PUBLIC_URL + "/?mode=multi"
+STATIC_URL = "https://fcsmgolubjr-bot.github.io/kir-s/snake-arena/static/"
+SOLO_URL = STATIC_URL + "?mode=solo"
+MULTI_URL = STATIC_URL + "?mode=multi"
 
 def telegram_api(method: str, payload: dict) -> dict:
     if not BOT_TOKEN:
@@ -105,7 +106,7 @@ async def register_telegram_bot() -> None:
                 asyncio.to_thread(telegram_api, "setChatMenuButton", {
                     "menu_button": {
                         "type": "web_app", "text": "🎮 Режимы",
-                        "web_app": {"url": PUBLIC_URL},
+                        "web_app": {"url": STATIC_URL},
                     }
                 }),
                 timeout=15,
